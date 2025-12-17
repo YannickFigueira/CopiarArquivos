@@ -11,4 +11,3 @@
 
 ### Fixes
 - Corrigido para mostras o arquivo que está a copiar no momento e não o que já foi copiado
--
