@@ -1,6 +1,13 @@
+import argparse
 import tkinter as tk
 import metodos
 from tkinter import ttk
+
+VERSION = "4.0.0"
+
+parser = argparse.ArgumentParser(prog="programaigreja")
+parser.add_argument("--version", action="version", version=f"%(prog)s {VERSION}")
+args = parser.parse_args()
 
 root = tk.Tk()
 root.title("Cópia de arquivos 4.0.0")
