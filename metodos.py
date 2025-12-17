@@ -2,7 +2,36 @@ import time
 from pathlib import Path
 import threading
 import shutil
+import os
 from tkinter import filedialog, messagebox
+import logging
+import platform
+
+# Configuração do logger
+# Detecta sistema operacional
+system = platform.system()  # Retorna 'Linux', 'Windows', 'Darwin' (Mac)
+
+home_dir = os.path.expanduser('~')
+if system == 'Linux':
+
+    if not os.path.exists(f"{home_dir}/log"):
+        os.mkdir(f"{home_dir}/log")
+
+    logging.basicConfig(
+        filename=f"{home_dir}/log/copiararquivos.log",        # nome do arquivo
+        level=logging.ERROR,         # nível de log
+        format="%(asctime)s - %(levelname)s - %(message)s"
+    )
+elif system == 'Windows':
+
+    if not os.path.exists(f"c:/temp"):
+        os.mkdir(f"c:/temp")
+
+    logging.basicConfig(
+        filename="c:/temp/copiararquivos.log",  # nome do arquivo
+        level=logging.ERROR,  # nível de log
+        format="%(asctime)s - %(levelname)s - %(message)s"
+    )
 
 cancelar = False
 def parar_copia():
@@ -65,16 +94,16 @@ def copiando_arquivos(texto_origem,
             if item.is_dir():
                 destino_item.mkdir(parents=True, exist_ok=True)
             else:
+                text_area.delete("1.0", "end")  # apaga tudo
+                text_area.insert("1.0", item)
                 destino_item.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(item, destino_item)
                 tamanho_item += item.stat().st_size
-                text_area.delete("1.0", "end")  # apaga tudo
-                text_area.insert("1.0", item)
                 label_copiado_contagem.config(text=formatar_tamanho(tamanho_item))
 
         except Exception as e:
             # Mostra o erro mas continua
-            print(f"Erro ao copiar {item}: {e}")
+            logging.error(f"Erro ao copiar {item}: {e}")
 
         # tempo decorrido
         decorrido = time.time() - inicio

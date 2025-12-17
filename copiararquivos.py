@@ -3,7 +3,7 @@ import tkinter as tk
 import metodos
 from tkinter import ttk
 
-VERSION = "4.0.0"
+VERSION = "4.0.1"
 
 parser = argparse.ArgumentParser(prog="programaigreja")
 parser.add_argument("--version", action="version", version=f"%(prog)s {VERSION}")
@@ -57,8 +57,8 @@ button_executar_copia = ttk.Button(root, text="Executar Cópia", width=largura,
                                                                              text_area,
                                                                           label_copiado_contagem,
                                                                           label_tempo_decorrido,
-                                                                          checkbox_origem,
-                                                                          checkbox_encerrar),
+                                                                          checkbox_origem.get(),
+                                                                          checkbox_encerrar.get()),
                                                     metodos.inciar_contagem(entrada_origem.get(),
                                                                             label_tamanho_contagem)))
 button_executar_copia.grid(row=1, column=0, padx=10, pady=(0, 10), sticky="we")
@@ -119,14 +119,6 @@ label_tempo.grid(row=1, column=2, padx=(0, 8), pady=(0, 8), sticky="e")
 
 label_tempo_decorrido = ttk.Label(bottom_frame, text="00:00:00.0000")
 label_tempo_decorrido.grid(row=1, column=3, padx=(0, 8), pady=(0, 8), sticky="e")
-
-#label_arquivo_total = ttk.Label(bottom_frame, text="Progresso total:")
-#label_arquivo_total.grid(row=2, column=0, padx=(0, 8), pady=(0, 8), sticky="w")
-
-# Barra de progresso
-#progress_bar_total = ttk.Progressbar(bottom_frame, orient="horizontal", length=300, mode="determinate")
-#progress_bar_total.grid(row=2, column=1, columnspan=3, padx=10, pady=(0, 8), sticky="w")
-#progress_bar_total["value"] = 18
 
 # Tornar a coluna expansível para a área de texto crescer horizontalmente
 root.columnconfigure(0, weight=1)
