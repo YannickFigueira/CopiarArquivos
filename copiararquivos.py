@@ -1,9 +1,11 @@
 import argparse
 import tkinter as tk
 import metodos
+import verificarversao
 from tkinter import ttk
 
-VERSION = "4.0.1"
+VERSION = "4.0.2"
+repo = "CopiarArquivos"
 
 parser = argparse.ArgumentParser(prog="copiararquivos")
 parser.add_argument("--version", action="version", version=f"%(prog)s {VERSION}")
@@ -119,6 +121,10 @@ label_tempo.grid(row=1, column=2, padx=(0, 8), pady=(0, 8), sticky="e")
 
 label_tempo_decorrido = ttk.Label(bottom_frame, text="00:00:00.0000")
 label_tempo_decorrido.grid(row=1, column=3, padx=(0, 8), pady=(0, 8), sticky="e")
+
+# verificar versão
+button_update = ttk.Button(root, text="Verificar atualização", command=lambda: verificarversao.consultar_lancamento(repo, VERSION))
+button_update.grid(row=7, column=0, columnspan=4, padx=10, pady=(0, 10), sticky="we")
 
 # Tornar a coluna expansível para a área de texto crescer horizontalmente
 root.columnconfigure(0, weight=1)

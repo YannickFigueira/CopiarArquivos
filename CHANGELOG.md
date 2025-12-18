@@ -13,3 +13,7 @@
 ### Fixes
 - Corrigido para mostras o arquivo que está a copiar no momento e não o que já foi copiado
 - Algumas pequenas correções e melhorias no código
+
+## [4.0.2] - 2025-12-18
+### Changes
+- Adicionado botão para verificar lançamento de versão
