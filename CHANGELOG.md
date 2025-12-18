@@ -17,3 +17,7 @@
 ## [4.0.2] - 2025-12-18
 ### Changes
 - Adicionado botão para verificar lançamento de versão
+
+## [4.0.3] - 2025-12-18
+### Changes
+- Feito pequenas melhorias

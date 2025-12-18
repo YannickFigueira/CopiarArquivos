@@ -131,12 +131,13 @@ def copiando_arquivos(texto_origem,
 ### Atualiza a barra de progresso ###
 def atualizar_barra(valor, total, progress_canvas):
     progress_canvas.delete("all")
-    largura = int((valor / total) * 300)
+    largura = int((valor / total) * progress_canvas.winfo_width())
     # desenha a barra preenchida
     progress_canvas.create_rectangle(0, 0, largura, 25, fill="green")
     # escreve a porcentagem dentro da barra
     porcentagem = (valor / total) * 100
-    progress_canvas.create_text(150, 12, text=f"{porcentagem:.3f}%", fill="black", font=("Arial", 10, "bold"))
+    x = progress_canvas.winfo_width() // 2
+    progress_canvas.create_text(x, 12, text=f"{porcentagem:.3f}%", fill="black", font=("Arial", 10, "bold"))
 
 def selecionar_pasta():
     pasta = filedialog.askdirectory(title="Selecione uma pasta")
