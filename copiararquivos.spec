@@ -7,7 +7,7 @@ a = Analysis(
     binaries=[],
     datas=[
     ],
-    hiddenimports=['metodos', 'verificarversao'],  # módulos auxiliares
+    hiddenimports=['metodos', 'verificarversao', 'requests', 'urllib3', 'chardet', 'idna', 'certifi'], # módulos auxiliares
     hookspath=[],
     runtime_hooks=[],
     excludes=[],
