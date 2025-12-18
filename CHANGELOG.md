@@ -21,3 +21,4 @@
 ## [4.0.3] - 2025-12-18
 ### Changes
 - Feito pequenas melhorias
+- Adicionado link para donwload de novas versões
