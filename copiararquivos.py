@@ -5,12 +5,12 @@ from tkinter import ttk
 
 VERSION = "4.0.1"
 
-parser = argparse.ArgumentParser(prog="programaigreja")
+parser = argparse.ArgumentParser(prog="copiararquivos")
 parser.add_argument("--version", action="version", version=f"%(prog)s {VERSION}")
 args = parser.parse_args()
 
 root = tk.Tk()
-root.title("Cópia de arquivos 4.0.0")
+root.title(f"Cópia de arquivos {VERSION}")
 root.resizable(False, False)
 
 # Frame para alinhar label e campo de texto lado a lado
@@ -45,7 +45,7 @@ button_selecionar_destino = ttk.Button(top_frame, text="...", command=lambda: (e
 button_selecionar_destino.grid(row=1, column=2, padx=(10, 0), pady=(0, 8), sticky="we")
 
 largura = int(60 / 2)
-# Botão embaixo da área de texto
+# Botão em baixo da área de texto
 button_executar_copia = ttk.Button(root, text="Executar Cópia", width=largura,
                                    command=lambda: (metodos.iniciar_copia(entrada_origem.get(),
                                                                              entrada_destino.get(),
@@ -59,7 +59,7 @@ button_executar_copia = ttk.Button(root, text="Executar Cópia", width=largura,
                                                                           label_tempo_decorrido,
                                                                           checkbox_origem.get(),
                                                                           checkbox_encerrar.get()),
-                                                    metodos.inciar_contagem(entrada_origem.get(),
+                                                    metodos.iniciar_contagem(entrada_origem.get(),
                                                                             label_tamanho_contagem)))
 button_executar_copia.grid(row=1, column=0, padx=10, pady=(0, 10), sticky="we")
 
@@ -122,5 +122,8 @@ label_tempo_decorrido.grid(row=1, column=3, padx=(0, 8), pady=(0, 8), sticky="e"
 
 # Tornar a coluna expansível para a área de texto crescer horizontalmente
 root.columnconfigure(0, weight=1)
+
+metodos.clipboard(root, entrada_origem)
+metodos.clipboard(root, entrada_destino)
 
 root.mainloop()

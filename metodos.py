@@ -3,6 +3,7 @@ from pathlib import Path
 import threading
 import shutil
 import os
+import tkinter as tk
 from tkinter import filedialog, messagebox
 import logging
 import platform
@@ -77,8 +78,8 @@ def copiando_arquivos(texto_origem,
     arquivos = list(origem.rglob("*"))
     total = len(arquivos)
 
-    #progress_bar["maximum"] = total  # define o valor máximo da barra
-    #progress_bar["value"] = 0  # inicia em zero
+    #progress_bar["maximum"] = total # define o valor máximo da barra
+    #progress_bar["value"] = 0 # inicia em zero
 
     tamanho_item = 0
     inicio = time.time() # marca o início da execução
@@ -115,7 +116,7 @@ def copiando_arquivos(texto_origem,
 
         # atualiza a barra de progresso
         #progress_bar["value"] = i
-        root.update_idletasks()  # força atualização da interface
+        root.update_idletasks()  # força atualização da ‘interface’
 
     text_area.insert("2.0", "\nFinalizado!")
 
@@ -157,7 +158,7 @@ def formatar_tamanho(tamanho):
     else:
         return f"{tamanho:.2f} B"
 
-def tamaho_pasta(entrada_origem, label_tamanho_contagem):
+def tamanho_pasta(entrada_origem, label_tamanho_contagem):
     origem = Path(entrada_origem)
     arquivos = list(origem.rglob("*"))
 
@@ -165,10 +166,10 @@ def tamaho_pasta(entrada_origem, label_tamanho_contagem):
 
     label_tamanho_contagem.config(text=formatar_tamanho(tamanho_total))
 
-def inciar_contagem(entrada_origem,
+def iniciar_contagem(entrada_origem,
                     label_tamanho_contagem):
     t = threading.Thread(
-        target=tamaho_pasta,
+        target=tamanho_pasta,
         args=(entrada_origem,
               label_tamanho_contagem),
         daemon=True
@@ -205,3 +206,41 @@ def iniciar_copia(texto_origem,
         daemon=True
     )
     t.start()
+
+def clipboard(root, entrada):
+    def mostrar_menu(event):
+        # Guardar qual Entry foi clicado
+        global entry_atual
+        entry_atual = event.widget
+        menu_popup.tk_popup(event.x_root, event.y_root)
+
+    def copiar():
+        try:
+            root.clipboard_clear()
+            root.clipboard_append(entry_atual.selection_get())
+        except tk.TclError:
+            pass  # nada selecionado
+
+    def colar():
+        try:
+            entry_atual.insert(tk.INSERT, root.clipboard_get())
+        except tk.TclError:
+            pass  # clipboard vazio
+
+    def recortar():
+        try:
+            root.clipboard_clear()
+            root.clipboard_append(entry_atual.selection_get())
+            entry_atual.delete("sel.first", "sel.last")
+        except tk.TclError:
+            pass  # nada selecionado
+
+    # Criar menu único
+    menu_popup = tk.Menu(root, tearoff=0)
+    menu_popup.add_command(label="Copiar", command=copiar)
+    menu_popup.add_command(label="Colar", command=colar)
+    menu_popup.add_command(label="Recortar", command=recortar)
+
+    # Associar clique direito a ambos os Entry
+    entrada.bind("<Button-3>", mostrar_menu)
+

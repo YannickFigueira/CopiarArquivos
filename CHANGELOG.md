@@ -8,6 +8,8 @@
 ## [4.0.1] - 2025-12-17
 ### Changes
 - Adicionado criação de log de erros ao copiar arquivos
+- Adicionado clipboard com o botão direito do mouse nos textos de origem e destino
 
 ### Fixes
 - Corrigido para mostras o arquivo que está a copiar no momento e não o que já foi copiado
+- Algumas pequenas correções e melhorias no código
