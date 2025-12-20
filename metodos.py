@@ -34,6 +34,9 @@ elif system == 'Windows':
         format="%(asctime)s - %(levelname)s - %(message)s"
     )
 
+# Evento para parar a thread do tempo
+parar_tempo = threading.Event()
+
 cancelar = False
 def parar_copia():
     global cancelar
@@ -58,16 +61,9 @@ def copiando_arquivos(texto_origem,
     origem = Path(texto_origem)
     if checkbox_origem:
         texto_destino = f"{texto_destino}/{pasta_matriz[len(pasta_matriz) - 1]}"
-        #print(verificar)
 
     destino = Path(texto_destino)
-
-    #print(pasta_matriz[len(pasta_matriz) -1])
     destino.mkdir(parents=True, exist_ok=True)
-
-    #entrada_origem.config(state="disabled")
-    #entrada_destino.config(state="disabled")
-    #button_executar_copia.config(state="disabled")
 
     # desabilita entradas e botão
     root.after(0, lambda: entrada_origem.config(state="disabled"))
@@ -75,7 +71,11 @@ def copiando_arquivos(texto_origem,
     root.after(0, lambda: button_executar_copia.config(state="disabled"))
 
     # lista todos os arquivos e subpastas
-    arquivos = list(origem.rglob("*"))
+    arquivos = []
+    for raiz, dirs, files in os.walk(origem, onerror=lambda e: None):
+        for f in files:
+            arquivos.append(Path(raiz) / f)
+
     total = len(arquivos)
 
     #progress_bar["maximum"] = total # define o valor máximo da barra
@@ -83,40 +83,45 @@ def copiando_arquivos(texto_origem,
 
     tamanho_item = 0
     inicio = time.time() # marca o início da execução
-    for i, item in enumerate(arquivos, start=1):
-        if cancelar:
-            text_area.delete(1.0, "end") # apaga tudo
-            progress_canvas.delete("all")
-            cancelar = False
-            break
 
-        destino_item = destino / item.relative_to(origem)
-        try:
-            if item.is_dir():
-                destino_item.mkdir(parents=True, exist_ok=True)
-            else:
-                text_area.delete("1.0", "end")  # apaga tudo
-                text_area.insert("1.0", item)
-                destino_item.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(item, destino_item)
-                tamanho_item += item.stat().st_size
-                label_copiado_contagem.config(text=formatar_tamanho(tamanho_item))
+    # inicia a thread do tempo (daemon para não travar saída)
+    thread_tempo = threading.Thread(target=atualiza_tempo, args=(inicio, label_tempo_decorrido), daemon=True)
+    thread_tempo.start()
 
-        except Exception as e:
-            # Mostra o erro mas continua
-            logging.error(f"Erro ao copiar {item}: {e}")
+    try:
+        for i, item in enumerate(arquivos, start=1):
+            if cancelar:
+                text_area.delete(1.0, "end") # apaga tudo
+                progress_canvas.delete("all")
+                cancelar = False
+                break
 
-        # tempo decorrido
-        decorrido = time.time() - inicio
-        # label_tempo_decorrido.config(text=f"{decorrido:.1f} s")
-        minutos, segundos = divmod(decorrido, 60)
-        label_tempo_decorrido.config(text=f"{int(minutos)}:{segundos:04.1f}")
+            destino_item = destino / item.relative_to(origem)
+            try:
+                if item.is_dir():
+                    destino_item.mkdir(parents=True, exist_ok=True)
+                else:
+                    text_area.delete("1.0", "end")  # apaga tudo
+                    text_area.insert("1.0", item)
+                    destino_item.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(item, destino_item)
+                    tamanho_item += item.stat().st_size
+                    label_copiado_contagem.config(text=formatar_tamanho(tamanho_item))
 
-        atualizar_barra(i, total, progress_canvas)
+            except Exception as e:
+                # Mostra o erro mas continua
+                logging.error(f"Erro ao copiar {item}: {e}")
 
-        # atualiza a barra de progresso
-        #progress_bar["value"] = i
-        root.update_idletasks()  # força atualização da ‘interface’
+            atualizar_barra(i, total, progress_canvas)
+
+            # atualiza a barra de progresso
+            #progress_bar["value"] = i
+            root.update_idletasks()  # força atualização da ‘interface’
+    finally:
+        # sinaliza para parar a thread de tempo e aguarda encerrar
+        parar_tempo.set()
+        # small join com timeout para evitar travar se a GUI encerrar
+        thread_tempo.join(timeout=1.0)
 
     text_area.insert("2.0", "\nFinalizado!")
 
@@ -176,6 +181,21 @@ def iniciar_contagem(entrada_origem,
         daemon=True
     )
     t.start()
+
+def atualiza_tempo(inicio, label):
+    """Thread que atualiza o label de tempo decorrido em paralelo."""
+    while not parar_tempo.is_set():
+        decorrido = time.time() - inicio
+        minutos, segundos = divmod(decorrido, 60)
+
+        # agenda a atualização do label na thread principal do Tkinter
+        def _set_label():
+            label.config(text=f"{int(minutos)}:{segundos:04.1f}")
+
+        label.after(0, _set_label)
+
+        # frequência de atualização (ajuste conforme desejar)
+        time.sleep(0.2)
 
 # --- Inicia a cópia --- #
 def iniciar_copia(texto_origem,
@@ -244,4 +264,3 @@ def clipboard(root, entrada):
 
     # Associar clique direito a ambos os Entry
     entrada.bind("<Button-3>", mostrar_menu)
-

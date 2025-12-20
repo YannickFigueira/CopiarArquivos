@@ -22,3 +22,10 @@
 ### Changes
 - Feito pequenas melhorias
 - Adicionado link para donwload de novas versões
+
+## [4.0.4] - 2025-12-20
+### Changes
+
+### Fixed
+- Corrigido falha na cópia de arquivos devido a erro na leitura das pastas
+- Alterado o mostrador do tempo decorrido que parava durante a cópia de cada arquivo
