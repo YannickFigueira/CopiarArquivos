@@ -32,3 +32,4 @@
 ### Fixed
 - Verificação de arquivos já copiados para serem ignorados
 - Verificação de arquivos copiados incompletos/corrompidos para serem substituídos
+- Corrigido tempo que não reiniciava para a nova cópia sem fechar o programa
