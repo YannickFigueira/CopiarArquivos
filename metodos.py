@@ -104,7 +104,12 @@ def copiando_arquivos(texto_origem,
                     text_area.delete("1.0", "end")  # apaga tudo
                     text_area.insert("1.0", item)
                     destino_item.parent.mkdir(parents=True, exist_ok=True)
-                    shutil.copy2(item, destino_item)
+                    if not destino_item.is_file():
+                        print("Primeira execução")
+                        shutil.copy2(item, destino_item)
+                    elif item.stat().st_size > destino_item.stat().st_size:
+                        shutil.copy2(item, destino_item)
+                        print("Segunda execução")
                     tamanho_item += item.stat().st_size
                     label_copiado_contagem.config(text=formatar_tamanho(tamanho_item))
 

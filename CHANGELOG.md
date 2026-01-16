@@ -27,3 +27,8 @@
 ### Fixed
 - Corrigido falha na cópia de arquivos devido a erro na leitura das pastas
 - Alterado o mostrador do tempo decorrido que parava durante a cópia de cada arquivo
+
+## [4.0.5] - 2026-01-16
+### Fixed
+- Verificação de arquivos já copiados para serem ignorados
+- Verificação de arquivos copiados incompletos/corrompidos para serem substituídos
