@@ -33,3 +33,4 @@
 - Verificação de arquivos já copiados para serem ignorados
 - Verificação de arquivos copiados incompletos/corrompidos para serem substituídos
 - Corrigido tempo que não reiniciava para a nova cópia sem fechar o programa
+- Corrigido falha na execução da cópia quando colado caminho do Windows direto na caixa de texto

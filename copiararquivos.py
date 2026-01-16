@@ -49,8 +49,8 @@ button_selecionar_destino.grid(row=1, column=2, padx=(10, 0), pady=(0, 8), stick
 largura = int(60 / 2)
 # Botão em baixo da área de texto
 button_executar_copia = ttk.Button(root, text="Executar Cópia", width=largura,
-                                   command=lambda: (metodos.iniciar_copia(entrada_origem.get(),
-                                                                             entrada_destino.get(),
+                                   command=lambda: (metodos.iniciar_copia(entrada_origem.get().replace("\\", "/"),
+                                                                             entrada_destino.get().replace("\\", "/"),
                                                                              root,
                                                                              progress_canvas,
                                                                              entrada_origem,
@@ -61,11 +61,11 @@ button_executar_copia = ttk.Button(root, text="Executar Cópia", width=largura,
                                                                           label_tempo_decorrido,
                                                                           checkbox_origem.get(),
                                                                           checkbox_encerrar.get()),
-                                                    metodos.iniciar_contagem(entrada_origem.get(),
+                                                    metodos.iniciar_contagem(entrada_origem.get().replace("\\", "/"),
                                                                             label_tamanho_contagem)))
 button_executar_copia.grid(row=1, column=0, padx=10, pady=(0, 10), sticky="we")
 
-# Botão embaixo da área de texto
+# Botão em baixo da área de texto
 button_cancelar = ttk.Button(root, text="Cancelar", width=largura, command=lambda: metodos.parar_copia())
 button_cancelar.grid(row=1, column=1, padx=10, pady=(0, 10), sticky="we")
 
@@ -75,7 +75,7 @@ label_tamanho.grid(row=0, column=0, padx=(0, 8), pady=(0, 8), sticky="w")
 label_tamanho_contagem = ttk.Label(midle_frame, text=8*"--")
 label_tamanho_contagem.grid(row=0, column=1, padx=(0, 8), pady=(0, 8), sticky="w")
 
-# Checkbox embaixo
+# Checkbox em baixo
 checkbox_origem = tk.BooleanVar()
 checkbox_origem.set(True)
 checkbox = ttk.Checkbutton(root, text="Usar nome de origem", variable=checkbox_origem)
@@ -95,7 +95,7 @@ checkbox = ttk.Checkbutton(root, text="Desligar sistema", variable=checkbox_desl
 checkbox.grid(row=4, column=1, padx=10, pady=(0, 8), sticky="w")
 checkbox.config(state="disabled")
 
-# Área de texto embaixo da checkbox
+# Área de texto em baixo da checkbox
 text_area = tk.Text(root, width=50, height=8)
 text_area.grid(row=5, column=0, columnspan=2, padx=10, pady=(0, 8), sticky="we")
 
