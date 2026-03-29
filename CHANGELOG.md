@@ -34,3 +34,7 @@
 - Verificação de arquivos copiados incompletos/corrompidos para serem substituídos
 - Corrigido tempo que não reiniciava para a nova cópia sem fechar o programa
 - Corrigido falha na execução da cópia quando colado caminho do Windows direto na caixa de texto
+
+## [4.0.6] - 2026-03-29
+### Changes
+- Ajustado o tempo para mostras as horas corretamente
