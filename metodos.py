@@ -192,11 +192,12 @@ def atualiza_tempo(inicio, label):
     """Thread que atualiza o label de tempo decorrido em paralelo."""
     while not parar_tempo.is_set():
         decorrido = time.time() - inicio
-        minutos, segundos = divmod(decorrido, 60)
+        horas, resto = divmod(decorrido, 3600)  # divide em horas
+        minutos, segundos = divmod(resto, 60)  # divide o restante em minutos e segundos
 
         # agenda a atualização do label na thread principal do Tkinter
         def _set_label():
-            label.config(text=f"{int(minutos)}:{segundos:04.1f}")
+            label.config(text=f"{int(horas):02}:{int(minutos):02}:{segundos:04.1f}")
 
         label.after(0, _set_label)
 
