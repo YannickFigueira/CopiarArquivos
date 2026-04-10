@@ -42,3 +42,5 @@
 ## [4.0.7] - 2026-04-09
 ### Changes
 - Adicionado tamanho dos arquivos na área de texto
+- Adicionado alerta de espaço insuficiente em disco, para liberar espaço e continuar
+- Cronometro pausa junto ao alerta de espaço

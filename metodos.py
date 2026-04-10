@@ -40,6 +40,7 @@ elif system == 'Windows':
 
 # Evento para parar a thread do tempo
 parar_tempo = threading.Event()
+pausar_tempo = threading.Event()
 
 cancelar = False
 def parar_copia():
@@ -111,6 +112,11 @@ def copiando_arquivos(texto_origem,
 
                     uso = shutil.disk_usage(disco)
                     #print(f"Espaço livre: {uso.free / (1024**3):.2f} GB")
+                    if item.stat().st_size < uso.free:
+                        pausar_tempo.set()
+                        messagebox.showwarning("Sem espaço em disco", f"Espaço necessário {formatar_tamanho(item.stat().st_size - uso.free)}")
+                        pausar_tempo.clear()
+
                     destino_item.parent.mkdir(parents=True, exist_ok=True)
 
                     if not destino_item.is_file():
@@ -198,6 +204,10 @@ def iniciar_contagem(entrada_origem,
 def atualiza_tempo(inicio, label):
     """Thread que atualiza o label de tempo decorrido em paralelo."""
     while not parar_tempo.is_set():
+        # Se estiver pausado, espera até ser liberado
+        while pausar_tempo.is_set() and not parar_tempo.is_set():
+            time.sleep(0.1)
+
         decorrido = time.time() - inicio
         horas, resto = divmod(decorrido, 3600)  # divide em horas
         minutos, segundos = divmod(resto, 60)  # divide o restante em minutos e segundos
