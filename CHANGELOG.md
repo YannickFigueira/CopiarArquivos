@@ -38,3 +38,7 @@
 ## [4.0.6] - 2026-03-29
 ### Changes
 - Ajustado o tempo para mostras as horas corretamente
+
+## [4.0.7] - 2026-04-09
+### Changes
+- Adicionado tamanho dos arquivos na área de texto

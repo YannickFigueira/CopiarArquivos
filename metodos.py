@@ -23,6 +23,8 @@ if system == 'Linux':
         level=logging.ERROR,         # nível de log
         format="%(asctime)s - %(levelname)s - %(message)s"
     )
+
+    disco = "/"
 elif system == 'Windows':
 
     if not os.path.exists(f"c:/temp"):
@@ -33,6 +35,8 @@ elif system == 'Windows':
         level=logging.ERROR,  # nível de log
         format="%(asctime)s - %(levelname)s - %(message)s"
     )
+
+    disco = "C:"
 
 # Evento para parar a thread do tempo
 parar_tempo = threading.Event()
@@ -103,7 +107,10 @@ def copiando_arquivos(texto_origem,
                     destino_item.mkdir(parents=True, exist_ok=True)
                 else:
                     text_area.delete("1.0", "end")  # apaga tudo
-                    text_area.insert("1.0", item)
+                    text_area.insert("1.0", f"{formatar_tamanho(item.stat().st_size)} -> {item}")
+
+                    uso = shutil.disk_usage(disco)
+                    #print(f"Espaço livre: {uso.free / (1024**3):.2f} GB")
                     destino_item.parent.mkdir(parents=True, exist_ok=True)
 
                     if not destino_item.is_file():
@@ -161,9 +168,9 @@ def formatar_tamanho(tamanho):
     tamanho_mb = tamanho / 1024 / 1024
     tamanho_gb = tamanho / 1024 / 1024 / 1024
 
-    if tamanho > (1024 * 1024 * 1024):
-        return f"{tamanho_gb:.2f} GiB"
-    elif tamanho > (1024 * 1024):
+    if tamanho > (1024 ** 3):
+        return f"{tamanho_gb:.2f} GB"
+    elif tamanho > (1024 ** 2):
         return f"{tamanho_mb:.2f} MB"
     elif tamanho > 1024:
         return f"{tamanho_kb:.2f} KB"

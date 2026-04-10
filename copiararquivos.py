@@ -4,7 +4,7 @@ import metodos
 import verificarversao
 from tkinter import ttk
 
-VERSION = "4.0.6"
+VERSION = "4.0.7"
 repo = "CopiarArquivos"
 
 parser = argparse.ArgumentParser(prog="copiararquivos")
