@@ -23,8 +23,6 @@ if system == 'Linux':
         level=logging.ERROR,         # nível de log
         format="%(asctime)s - %(levelname)s - %(message)s"
     )
-
-    disco = "/"
 elif system == 'Windows':
 
     if not os.path.exists(f"c:/temp"):
@@ -35,8 +33,6 @@ elif system == 'Windows':
         level=logging.ERROR,  # nível de log
         format="%(asctime)s - %(levelname)s - %(message)s"
     )
-
-    disco = "C:"
 
 # Evento para parar a thread do tempo
 parar_tempo = threading.Event()
@@ -110,9 +106,16 @@ def copiando_arquivos(texto_origem,
                     text_area.delete("1.0", "end")  # apaga tudo
                     text_area.insert("1.0", f"{formatar_tamanho(item.stat().st_size)} -> {item}")
 
+                    disco = ""
+                    if system == 'Windows':
+                        separar = item.text.split("/")
+                        disco = separar[0]
+                    elif system == 'Linux':
+                        disco = entrada_destino.get()
+
                     uso = shutil.disk_usage(disco)
-                    #print(f"Espaço livre: {uso.free / (1024**3):.2f} GB")
-                    if item.stat().st_size < uso.free:
+                    #print(f"Espaço livre: {uso.free / (1024**3):.2f} GB {disco}")
+                    if item.stat().st_size > uso.free:
                         pausar_tempo.set()
                         messagebox.showwarning("Sem espaço em disco", f"Espaço necessário {formatar_tamanho(item.stat().st_size - uso.free)}")
                         pausar_tempo.clear()

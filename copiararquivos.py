@@ -2,18 +2,42 @@ import argparse
 import tkinter as tk
 import metodos
 import verificarversao
-from tkinter import ttk
+from tkinter import ttk, messagebox
 
-VERSION = "4.0.7"
+VERSION = "4.0.8"
 repo = "CopiarArquivos"
+nome_programa = "Cópia de arquivos"
 
 parser = argparse.ArgumentParser(prog="copiararquivos")
 parser.add_argument("--version", action="version", version=f"%(prog)s {VERSION}")
 args = parser.parse_args()
 
 root = tk.Tk()
-root.title(f"Cópia de arquivos {VERSION}")
+root.title(f"{nome_programa} {VERSION}")
 root.resizable(False, False)
+
+# Criar barra de menu
+barra_menu = tk.Menu(root)
+root.config(menu=barra_menu)
+
+def visitar_site():
+    pagina = f"https://github.com/YannickFigueira"
+    resposta = messagebox.askyesno("Sobre", f"{nome_programa} v{VERSION}\n"
+                                 f"Deseja visitar a página\n"
+                                 f"Desenvolvedor YannickFigueira\n"
+                                 f"chronostimeinchain@gmail.com")
+    if resposta:
+        verificarversao.webbrowser.open(pagina)
+
+# Menu Ajuda
+menu_ajuda = tk.Menu(barra_menu, tearoff=0)
+menu_ajuda.add_command(label="Verificar atualização", command=lambda: verificarversao.consultar_lancamento(repo, VERSION))
+menu_ajuda.add_command(label="Sobre",
+                       command=lambda: visitar_site())
+barra_menu.add_cascade(label="Ajuda", menu=menu_ajuda)
+
+# Menu Sair
+barra_menu.add_command(label="Sair", command=root.quit)
 
 # Frame para alinhar label e campo de texto lado a lado
 top_frame = ttk.Frame(root, padding=10)
@@ -102,11 +126,6 @@ text_area.grid(row=5, column=0, columnspan=2, padx=10, pady=(0, 8), sticky="we")
 label_arquivo_atual = ttk.Label(bottom_frame, text="Progresso total:")
 label_arquivo_atual.grid(row=0, column=0, padx=(0, 8), pady=(0, 8), sticky="w")
 
-# Barra de progresso
-#progress_bar = ttk.Progressbar(bottom_frame, orient="horizontal", length=300, mode="determinate")
-#progress_bar.grid(row=0, column=1, columnspan=3, padx=10, pady=(0, 8), sticky="w")
-#progress_bar["value"] = 18
-
 progress_canvas = tk.Canvas(bottom_frame, width=300, height=25, bg="white", highlightthickness=1, highlightbackground="black")
 progress_canvas.grid(row=0, column=1, columnspan=3, padx=10, pady=(0, 8), sticky="w")
 
@@ -119,12 +138,8 @@ label_copiado_contagem.grid(row=1, column=1, padx=(0, 8), pady=(0, 8), sticky="w
 label_tempo = ttk.Label(bottom_frame, text="Tempo decorrido:")
 label_tempo.grid(row=1, column=2, padx=(0, 8), pady=(0, 8), sticky="e")
 
-label_tempo_decorrido = ttk.Label(bottom_frame, text="00:00:00.0000")
+label_tempo_decorrido = ttk.Label(bottom_frame, text="--:--:--.----")
 label_tempo_decorrido.grid(row=1, column=3, padx=(0, 8), pady=(0, 8), sticky="e")
-
-# verificar versão
-button_update = ttk.Button(root, text="Verificar atualização", command=lambda: verificarversao.consultar_lancamento(repo, VERSION))
-button_update.grid(row=7, column=0, columnspan=4, padx=10, pady=(0, 10), sticky="we")
 
 # Tornar a coluna expansível para a área de texto crescer horizontalmente
 root.columnconfigure(0, weight=1)

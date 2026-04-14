@@ -44,3 +44,11 @@
 - Adicionado tamanho dos arquivos na área de texto
 - Adicionado alerta de espaço insuficiente em disco, para liberar espaço e continuar
 - Cronometro pausa junto ao alerta de espaço
+
+## [4.0.8] - 2026-04-14
+### Fixed
+- Corrigido verificação do espaço em disco
+
+### Changes
+- Adicionado barra de menus
+- removido botão para verificar versão, passado para barra de menu
