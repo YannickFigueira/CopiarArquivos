@@ -108,7 +108,7 @@ def copiando_arquivos(texto_origem,
 
                     disco = ""
                     if system == 'Windows':
-                        separar = item.text.split("/")
+                        separar = entrada_destino.get().split("/")
                         disco = separar[0]
                     elif system == 'Linux':
                         disco = entrada_destino.get()
