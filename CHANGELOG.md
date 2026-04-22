@@ -52,3 +52,11 @@
 ### Changes
 - Adicionado barra de menus
 - removido botão para verificar versão, passado para barra de menu
+
+## [4.0.9] - 2026-04-21
+### Fixed
+- Corrigido utilização infinita do log de ERRO 
+
+### Changes
+- Adicionado menu para abrir log de ERRO
+- Adicionado alerta para erros encontrados durante a cópia

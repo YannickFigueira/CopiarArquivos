@@ -1,10 +1,10 @@
-import argparse
+import argparse, platform, subprocess, os
 import tkinter as tk
 import metodos
 import verificarversao
 from tkinter import ttk, messagebox
 
-VERSION = "4.0.8"
+VERSION = "4.0.9"
 repo = "CopiarArquivos"
 nome_programa = "Cópia de arquivos"
 
@@ -28,6 +28,22 @@ def visitar_site():
                                  f"chronostimeinchain@gmail.com")
     if resposta:
         verificarversao.webbrowser.open(pagina)
+
+def abrir_logs():
+    home_dir = os.path.expanduser('~')
+    if platform.system() == "Windows":
+        arquivo = "C:\\temp\\copiararquivos.log"
+        subprocess.run(["notepad", arquivo])
+    elif platform.system() == "Linux":
+        arquivo = f"{home_dir}/log/copiararquivos.log"
+        subprocess.run(["xdg-open", arquivo])  # ou "gedit"
+    else:
+        print("Sistema não suportado")
+
+# Menu Arquivo
+menu_arquivo = tk.Menu(barra_menu, tearoff=0)
+menu_arquivo.add_command(label="Abrir log de ERRO", command=lambda: abrir_logs())
+barra_menu.add_cascade(label="Arquivo", menu=menu_arquivo)
 
 # Menu Ajuda
 menu_ajuda = tk.Menu(barra_menu, tearoff=0)

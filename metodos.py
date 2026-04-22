@@ -8,6 +8,8 @@ from tkinter import filedialog, messagebox
 import logging
 import platform
 
+from sympy import false
+
 # Configuração do logger
 # Detecta sistema operacional
 system = platform.system()  # Retorna 'Linux', 'Windows', 'Darwin' (Mac)
@@ -18,8 +20,12 @@ if system == 'Linux':
     if not os.path.exists(f"{home_dir}/log"):
         os.mkdir(f"{home_dir}/log")
 
+    log = f"{home_dir}/log/copiararquivos.log"
+    if os.path.exists(log):
+        os.remove(log)
+
     logging.basicConfig(
-        filename=f"{home_dir}/log/copiararquivos.log",        # nome do arquivo
+        filename=log,        # nome do arquivo
         level=logging.ERROR,         # nível de log
         format="%(asctime)s - %(levelname)s - %(message)s"
     )
@@ -28,8 +34,12 @@ elif system == 'Windows':
     if not os.path.exists(f"c:/temp"):
         os.mkdir(f"c:/temp")
 
+    log = f"c:/temp/copiararquivos.log"
+    if os.path.exists(log):
+        os.remove(log)
+
     logging.basicConfig(
-        filename="c:/temp/copiararquivos.log",  # nome do arquivo
+        filename=log,  # nome do arquivo
         level=logging.ERROR,  # nível de log
         format="%(asctime)s - %(levelname)s - %(message)s"
     )
@@ -55,6 +65,7 @@ def copiando_arquivos(texto_origem,
                       label_tempo_decorrido,
                       checkbox_origem,
                       checkbox_encerrar):
+    erro = False
     global cancelar
     parar_tempo.clear()
 
@@ -133,6 +144,7 @@ def copiando_arquivos(texto_origem,
             except Exception as e:
                 # Mostra o erro mas continua
                 logging.error(f"Erro ao copiar {item}: {e}")
+                erro = True
 
             atualizar_barra(i, total, progress_canvas)
 
@@ -151,8 +163,11 @@ def copiando_arquivos(texto_origem,
     entrada_destino.config(state="enabled")
     button_executar_copia.config(state="enabled")
 
+    if erro:
+        messagebox.showwarning("Erro", "Foi encontrado erros durante a cópia, vá em Arquivos -> Abrir log de ERRO")
+
     if checkbox_encerrar:
-        messagebox.showinfo("Encerrando", "Programa será encerrado")
+        #messagebox.showinfo("Encerrando", "Programa será encerrado")
         root.destroy()
 
 ### Atualiza a barra de progresso ###
