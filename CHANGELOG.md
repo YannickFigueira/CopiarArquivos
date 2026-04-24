@@ -55,7 +55,8 @@
 
 ## [4.0.9] - 2026-04-21
 ### Fixed
-- Corrigido utilização infinita do log de ERRO 
+- Corrigido utilização infinita do log de ERRO
+- Removido importação errada de biblioteca, causando erro na execução
 
 ### Changes
 - Adicionado menu para abrir log de ERRO

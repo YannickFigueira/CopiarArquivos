@@ -8,8 +8,6 @@ from tkinter import filedialog, messagebox
 import logging
 import platform
 
-from sympy import false
-
 # Configuração do logger
 # Detecta sistema operacional
 system = platform.system()  # Retorna 'Linux', 'Windows', 'Darwin' (Mac)
