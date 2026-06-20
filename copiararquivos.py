@@ -1,10 +1,12 @@
 import argparse, platform, subprocess, os
 import tkinter as tk
+from pathlib import Path
+
 import metodos
 import verificarversao
 from tkinter import ttk, messagebox
 
-VERSION = "4.0.9"
+VERSION = "4.1.10"
 repo = "CopiarArquivos"
 nome_programa = "Cópia de arquivos"
 
@@ -56,19 +58,24 @@ barra_menu.add_cascade(label="Ajuda", menu=menu_ajuda)
 barra_menu.add_command(label="Sair", command=root.quit)
 
 # Frame para alinhar label e campo de texto lado a lado
-top_frame = ttk.Frame(root, padding=10)
+top_frame = ttk.Frame(root, padding=(10, 10, 10, 0))
 top_frame.grid(row=0, column=0, columnspan=2, sticky="w")
 
-midle_frame = ttk.Frame(root, padding=10)
-midle_frame.grid(row=2, column=0, columnspan=2, sticky="w")
+top_button_frame = ttk.Frame(root, padding=(10, 4, 10, 0))
+top_button_frame.grid(row=1, column=0, columnspan=2, sticky="w")
+
+middle_frame = ttk.Frame(root, padding=10)
+middle_frame.grid(row=2, column=0, columnspan=2, sticky="w")
 
 bottom_frame = ttk.Frame(root, padding=10)
 bottom_frame.grid(row=6, column=0, columnspan=2, sticky="w")
 
+### Fim dos frames ###
+
 label_origem = ttk.Label(top_frame, text="Origem:")
 label_origem.grid(row=0, column=0, padx=(0, 8), pady=(0, 8), sticky="w")
 
-largura_entradas = 50
+largura_entradas = 51
 entrada_origem = ttk.Entry(top_frame, width=largura_entradas)
 entrada_origem.grid(row=0, column=1, pady=(0, 8), sticky="w")
 
@@ -86,33 +93,22 @@ button_selecionar_destino = ttk.Button(top_frame, text="...", command=lambda: (e
                                                                               entrada_destino.insert(0, metodos.selecionar_pasta())))
 button_selecionar_destino.grid(row=1, column=2, padx=(10, 0), pady=(0, 8), sticky="we")
 
-largura = int(60 / 2)
+largura = 22
 # Botão em baixo da área de texto
-button_executar_copia = ttk.Button(root, text="Executar Cópia", width=largura,
-                                   command=lambda: (metodos.iniciar_copia(entrada_origem.get().replace("\\", "/"),
-                                                                             entrada_destino.get().replace("\\", "/"),
-                                                                             root,
-                                                                             progress_canvas,
-                                                                             entrada_origem,
-                                                                             entrada_destino,
-                                                                             button_executar_copia,
-                                                                             text_area,
-                                                                          label_copiado_contagem,
-                                                                          label_tempo_decorrido,
-                                                                          checkbox_origem.get(),
-                                                                          checkbox_encerrar.get()),
-                                                    metodos.iniciar_contagem(entrada_origem.get().replace("\\", "/"),
-                                                                            label_tamanho_contagem)))
-button_executar_copia.grid(row=1, column=0, padx=10, pady=(0, 10), sticky="we")
+button_executar_copia = ttk.Button(top_button_frame, text="Executar Cópia", width=largura, command=lambda: executar_acao())
+button_executar_copia.grid(row=0, column=0, padx=0, pady=(0, 10), sticky="we")
 
 # Botão em baixo da área de texto
-button_cancelar = ttk.Button(root, text="Cancelar", width=largura, command=lambda: metodos.parar_copia())
-button_cancelar.grid(row=1, column=1, padx=10, pady=(0, 10), sticky="we")
+button_cancelar = ttk.Button(top_button_frame, text="Cancelar", width=largura, command=lambda: metodos.parar_copia())
+button_cancelar.grid(row=0, column=1, padx=5, pady=(0, 10), sticky="we")
 
-label_tamanho = ttk.Label(midle_frame, text="Tamanho:")
+button_pausar = ttk.Button(top_button_frame, text="Pausar", width=largura, command=lambda: metodos.pausar_copia())
+button_pausar.grid(row=0, column=2, padx=0, pady=(0, 10), sticky="we")
+
+label_tamanho = ttk.Label(middle_frame, text="Tamanho:")
 label_tamanho.grid(row=0, column=0, padx=(0, 8), pady=(0, 8), sticky="w")
 
-label_tamanho_contagem = ttk.Label(midle_frame, text=8*"--")
+label_tamanho_contagem = ttk.Label(middle_frame, text=8 * "--")
 label_tamanho_contagem.grid(row=0, column=1, padx=(0, 8), pady=(0, 8), sticky="w")
 
 # Checkbox em baixo
@@ -133,7 +129,6 @@ checkbox.grid(row=3, column=1, padx=10, pady=(0, 8), sticky="w")
 checkbox_desligar = tk.BooleanVar()
 checkbox = ttk.Checkbutton(root, text="Desligar sistema", variable=checkbox_desligar)
 checkbox.grid(row=4, column=1, padx=10, pady=(0, 8), sticky="w")
-checkbox.config(state="disabled")
 
 # Área de texto em baixo da checkbox
 text_area = tk.Text(root, width=50, height=8)
@@ -159,6 +154,46 @@ label_tempo_decorrido.grid(row=1, column=3, padx=(0, 8), pady=(0, 8), sticky="e"
 
 # Tornar a coluna expansível para a área de texto crescer horizontalmente
 root.columnconfigure(0, weight=1)
+
+### Comandos ###
+def executar_acao():
+    widgets = [entrada_origem, entrada_destino, button_selecionar_origem, button_selecionar_destino, button_executar_copia]
+
+    origem = Path(entrada_origem.get().replace("\\", "/"))
+    destino = entrada_destino.get().replace("\\", "/")
+    verificar_destino = destino.split("/")
+
+    if not entrada_origem.get() == "":
+        if origem.is_dir():
+            if not entrada_destino.get() == "":
+                if Path(f"/{verificar_destino[0]}").is_dir():
+                    metodos.iniciar_copia(entrada_origem.get().replace("\\", "/"),
+                                          entrada_destino.get().replace("\\", "/"),
+                                          root,
+                                          progress_canvas,
+                                          widgets,
+                                          text_area,
+                                          label_copiado_contagem,
+                                          label_tempo_decorrido,
+                                          checkbox_origem.get(),
+                                          checkbox_encerrar.get(),
+                                          checkbox_desligar.get()),
+                    metodos.iniciar_contagem(entrada_origem.get().replace("\\", "/"),
+                                             label_tamanho_contagem)
+                else:
+                    messagebox.showwarning("Aviso", "Selecionar pasta de destino válida")
+                    entrada_destino.focus_set()
+            else:
+                messagebox.showwarning("Aviso", "Selecione a pasta de destino, ou cole o caminho")
+                entrada_destino.focus_set()
+        else:
+            messagebox.showwarning("Aviso", "Pasta não existe, verifique")
+            entrada_origem.focus_set()
+    else:
+        messagebox.showwarning("Aviso", "Selecionar a pasta de origem, ou colar o caminho")
+        entrada_origem.focus_set()
+
+### Fim dos comandos ###
 
 metodos.clipboard(root, entrada_origem)
 metodos.clipboard(root, entrada_destino)

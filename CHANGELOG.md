@@ -61,3 +61,11 @@
 ### Changes
 - Adicionado menu para abrir log de ERRO
 - Adicionado alerta para erros encontrados durante a cópia
+
+## [4.1.10] - 2026-06-20
+### Fixed
+- Criado verificação dos campos de texto para não executar vazio ou com pastas inexistentes
+
+### Changed
+- Configurado para bloquear os botões para selecionar as pastas durante a cópia
+- Adicionado botão para pausar a cópia dos arquivos

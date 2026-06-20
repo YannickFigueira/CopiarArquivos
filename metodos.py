@@ -47,24 +47,46 @@ parar_tempo = threading.Event()
 pausar_tempo = threading.Event()
 
 cancelar = False
+pausar = False
 def parar_copia():
     global cancelar
     cancelar = True
 
+def pausar_copia():
+    global pausar
+    pausar = True
+
+
+def desligar_computador():
+    # Detecta o sistema operacional atual
+    sistema = platform.system().lower()
+
+    if "windows" in sistema:
+        # /s = desligar, /t 0 = tempo de espera (0 segundos)
+        os.system("shutdown /s /t 0")
+
+    elif "linux" in sistema:
+        # h = halt/desligar, now = imediatamente
+        # Nota: no Linux, pode ser necessário privilégios de root (sudo) dependendo da distro
+        os.system("shutdown -h now")
+
+    else:
+        print("Sistema operacional não suportado para esta ação.")
+
 def copiando_arquivos(texto_origem,
-                      texto_destino,
-                      root,
-                      progress_canvas,
-                      entrada_origem,
-                      entrada_destino,
-                      button_executar_copia,
-                      text_area,
-                      label_copiado_contagem,
-                      label_tempo_decorrido,
-                      checkbox_origem,
-                      checkbox_encerrar):
+                          texto_destino,
+                          root,
+                          progress_canvas,
+                          widgets,
+                          text_area,
+                          label_copiado_contagem,
+                          label_tempo_decorrido,
+                          checkbox_origem,
+                          checkbox_encerrar,
+                          checkbox_desligar):
     erro = False
     global cancelar
+    global pausar
     parar_tempo.clear()
 
     pasta_matriz = str(texto_origem).split("/")
@@ -76,10 +98,14 @@ def copiando_arquivos(texto_origem,
     destino = Path(texto_destino)
     destino.mkdir(parents=True, exist_ok=True)
 
-    # desabilita entradas e botão
-    root.after(0, lambda: entrada_origem.config(state="disabled"))
-    root.after(0, lambda: entrada_destino.config(state="disabled"))
-    root.after(0, lambda: button_executar_copia.config(state="disabled"))
+    # desabilita entradas e botões
+    #widgets = [entrada_origem, entrada_destino, button_selecionar_origem, button_selecionar_destino, button_executar_copia]
+
+    for widget in widgets:
+        widget.config(state="disabled")
+
+    # Força o Tkinter a atualizar a tela visualmente antes de travar no processo pesado
+    root.update_idletasks()
 
     # lista todos os arquivos e subpastas
     arquivos = []
@@ -88,9 +114,6 @@ def copiando_arquivos(texto_origem,
             arquivos.append(Path(raiz) / f)
 
     total = len(arquivos)
-
-    #progress_bar["maximum"] = total # define o valor máximo da barra
-    #progress_bar["value"] = 0 # inicia em zero
 
     tamanho_item = 0
     inicio = time.time() # marca o início da execução
@@ -117,10 +140,10 @@ def copiando_arquivos(texto_origem,
 
                     disco = ""
                     if system == 'Windows':
-                        separar = entrada_destino.get().split("/")
+                        separar = widgets[1].get().split("/")
                         disco = separar[0]
                     elif system == 'Linux':
-                        disco = entrada_destino.get()
+                        disco = widgets[1].get()
 
                     uso = shutil.disk_usage(disco)
                     #print(f"Espaço livre: {uso.free / (1024**3):.2f} GB {disco}")
@@ -128,6 +151,12 @@ def copiando_arquivos(texto_origem,
                         pausar_tempo.set()
                         messagebox.showwarning("Sem espaço em disco", f"Espaço necessário {formatar_tamanho(item.stat().st_size - uso.free)}")
                         pausar_tempo.clear()
+
+                    if pausar:
+                        pausar_tempo.set()
+                        messagebox.showinfo("Pausado", "Clique em OK para continuar")
+                        pausar_tempo.clear()
+                        pausar = False
 
                     destino_item.parent.mkdir(parents=True, exist_ok=True)
 
@@ -157,9 +186,8 @@ def copiando_arquivos(texto_origem,
 
     text_area.insert("2.0", "\nFinalizado!")
 
-    entrada_origem.config(state="enabled")
-    entrada_destino.config(state="enabled")
-    button_executar_copia.config(state="enabled")
+    for widget in widgets:
+        widget.config(state="normal")
 
     if erro:
         messagebox.showwarning("Erro", "Foi encontrado erros durante a cópia, vá em Arquivos -> Abrir log de ERRO")
@@ -167,6 +195,9 @@ def copiando_arquivos(texto_origem,
     if checkbox_encerrar:
         #messagebox.showinfo("Encerrando", "Programa será encerrado")
         root.destroy()
+
+    if checkbox_desligar:
+        desligar_computador()
 
 ### Atualiza a barra de progresso ###
 def atualizar_barra(valor, total, progress_canvas):
@@ -239,31 +270,29 @@ def atualiza_tempo(inicio, label):
 
 # --- Inicia a cópia --- #
 def iniciar_copia(texto_origem,
-                      texto_destino,
-                      root,
-                      progress_canvas,
-                      entrada_origem,
-                      entrada_destino,
-                      button_executar_copia,
-                      text_area,
-                  label_copiado_contagem,
-                  label_tempo_decorrido,
-                  checkbox_origem,
-                  checkbox_encerrar):
+                    texto_destino,
+                    root,
+                    progress_canvas,
+                    widgets,
+                    text_area,
+                    label_copiado_contagem,
+                    label_tempo_decorrido,
+                    checkbox_origem,
+                    checkbox_encerrar,
+                    checkbox_desligar):
     t = threading.Thread(
         target=copiando_arquivos,
         args=(texto_origem,
               texto_destino,
               root,
               progress_canvas,
-              entrada_origem,
-              entrada_destino,
-              button_executar_copia,
+              widgets,
               text_area,
               label_copiado_contagem,
               label_tempo_decorrido,
               checkbox_origem,
-              checkbox_encerrar),
+              checkbox_encerrar,
+              checkbox_desligar),
         daemon=True
     )
     t.start()
