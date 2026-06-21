@@ -48,9 +48,12 @@ pausar_tempo = threading.Event()
 
 cancelar = False
 pausar = False
-def parar_copia():
-    global cancelar
-    cancelar = True
+def parar_copia(button_cancelar):
+    sim = messagebox.askyesno("Cancelar", "Quer realmente cancelar?")
+    if sim:
+        global cancelar
+        cancelar = True
+        button_cancelar.config(state="disabled")
 
 def pausar_copia():
     global pausar
@@ -74,16 +77,17 @@ def desligar_computador():
         print("Sistema operacional não suportado para esta ação.")
 
 def copiando_arquivos(texto_origem,
-                          texto_destino,
-                          root,
-                          progress_canvas,
-                          widgets,
-                          text_area,
-                          label_copiado_contagem,
-                          label_tempo_decorrido,
-                          checkbox_origem,
-                          checkbox_encerrar,
-                          checkbox_desligar):
+                        texto_destino,
+                        root,
+                        progress_canvas,
+                        widgets,
+                        button_pausar,
+                        text_area,
+                        label_copiado_contagem,
+                        label_tempo_decorrido,
+                        checkbox_origem,
+                        checkbox_encerrar,
+                        checkbox_desligar):
     erro = False
     global cancelar
     global pausar
@@ -188,16 +192,18 @@ def copiando_arquivos(texto_origem,
 
     for widget in widgets:
         widget.config(state="normal")
+    button_pausar.config(state="disabled")
 
     if erro:
         messagebox.showwarning("Erro", "Foi encontrado erros durante a cópia, vá em Arquivos -> Abrir log de ERRO")
 
+    if checkbox_desligar:
+        desligar_computador()
+        root.destroy()
+
     if checkbox_encerrar:
         #messagebox.showinfo("Encerrando", "Programa será encerrado")
         root.destroy()
-
-    if checkbox_desligar:
-        desligar_computador()
 
 ### Atualiza a barra de progresso ###
 def atualizar_barra(valor, total, progress_canvas):
@@ -274,6 +280,7 @@ def iniciar_copia(texto_origem,
                     root,
                     progress_canvas,
                     widgets,
+                    button_pausar,
                     text_area,
                     label_copiado_contagem,
                     label_tempo_decorrido,
@@ -283,16 +290,17 @@ def iniciar_copia(texto_origem,
     t = threading.Thread(
         target=copiando_arquivos,
         args=(texto_origem,
-              texto_destino,
-              root,
-              progress_canvas,
-              widgets,
-              text_area,
-              label_copiado_contagem,
-              label_tempo_decorrido,
-              checkbox_origem,
-              checkbox_encerrar,
-              checkbox_desligar),
+                texto_destino,
+                root,
+                progress_canvas,
+                widgets,
+                button_pausar,
+                text_area,
+                label_copiado_contagem,
+                label_tempo_decorrido,
+                checkbox_origem,
+                checkbox_encerrar,
+                checkbox_desligar),
         daemon=True
     )
     t.start()

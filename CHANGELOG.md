@@ -65,8 +65,10 @@
 ## [4.1.10] - 2026-06-20
 ### Fixed
 - Criado verificação dos campos de texto para não executar vazio ou com pastas inexistentes
+- Configurado botão de cancelar para prevenir encerrar o programa de imediato
 
 ### Changed
 - Configurado para bloquear os botões para selecionar as pastas durante a cópia
 - Adicionado botão para pausar a cópia dos arquivos
 - Ajustado tamanho da barra de progresso
+- Adicionado alteração nos botões de cancelar e pausar

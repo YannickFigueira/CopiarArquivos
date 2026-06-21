@@ -99,11 +99,13 @@ button_executar_copia = ttk.Button(top_button_frame, text="Executar Cópia", wid
 button_executar_copia.grid(row=0, column=0, padx=0, pady=(0, 10), sticky="we")
 
 # Botão em baixo da área de texto
-button_cancelar = ttk.Button(top_button_frame, text="Cancelar", width=largura, command=lambda: metodos.parar_copia())
+button_cancelar = ttk.Button(top_button_frame, text="Cancelar", width=largura, command=lambda: metodos.parar_copia(button_cancelar))
 button_cancelar.grid(row=0, column=1, padx=5, pady=(0, 10), sticky="we")
+button_cancelar.config(state=tk.DISABLED)
 
 button_pausar = ttk.Button(top_button_frame, text="Pausar", width=largura, command=lambda: metodos.pausar_copia())
 button_pausar.grid(row=0, column=2, padx=0, pady=(0, 10), sticky="we")
+button_pausar.config(state=tk.DISABLED)
 
 label_tamanho = ttk.Label(middle_frame, text="Tamanho:")
 label_tamanho.grid(row=0, column=0, padx=(0, 8), pady=(0, 8), sticky="w")
@@ -167,11 +169,14 @@ def executar_acao():
         if origem.is_dir():
             if not entrada_destino.get() == "":
                 if Path(f"/{verificar_destino[0]}").is_dir():
+                    button_cancelar.config(state="normal")
+                    button_pausar.config(state="normal")
                     metodos.iniciar_copia(entrada_origem.get().replace("\\", "/"),
                                           entrada_destino.get().replace("\\", "/"),
                                           root,
                                           progress_canvas,
                                           widgets,
+                                          button_pausar,
                                           text_area,
                                           label_copiado_contagem,
                                           label_tempo_decorrido,
