@@ -69,3 +69,4 @@
 ### Changed
 - Configurado para bloquear os botões para selecionar as pastas durante a cópia
 - Adicionado botão para pausar a cópia dos arquivos
+- Ajustado tamanho da barra de progresso

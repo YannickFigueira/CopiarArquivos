@@ -137,8 +137,8 @@ text_area.grid(row=5, column=0, columnspan=2, padx=10, pady=(0, 8), sticky="we")
 label_arquivo_atual = ttk.Label(bottom_frame, text="Progresso total:")
 label_arquivo_atual.grid(row=0, column=0, padx=(0, 8), pady=(0, 8), sticky="w")
 
-progress_canvas = tk.Canvas(bottom_frame, width=300, height=25, bg="white", highlightthickness=1, highlightbackground="black")
-progress_canvas.grid(row=0, column=1, columnspan=3, padx=10, pady=(0, 8), sticky="w")
+progress_canvas = tk.Canvas(bottom_frame, width=390, height=25, bg="white", highlightthickness=1, highlightbackground="black")
+progress_canvas.grid(row=0, column=1, columnspan=3, padx=(10, 0), pady=(0, 8), sticky="we")
 
 label_copiado = ttk.Label(bottom_frame, text="Copiado:")
 label_copiado.grid(row=1, column=0, padx=(0, 8), pady=(0, 8), sticky="w")
