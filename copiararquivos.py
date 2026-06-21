@@ -173,18 +173,18 @@ label_tempo_decorrido.grid(row=2, column=3, padx=espaco, pady=espaco, sticky="e"
 def executar_acao():
     widgets = [entrada_origem, entrada_destino, button_selecionar_origem, button_selecionar_destino, button_executar_copia]
 
-    origem = Path(entrada_origem.get().replace("\\", "/"))
-    destino = entrada_destino.get().replace("\\", "/")
+    origem = Path(entrada_origem.get().strip().replace("\\", "/"))
+    destino = entrada_destino.get().strip().replace("\\", "/")
     verificar_destino = destino.split("/")
 
-    if not entrada_origem.get() == "":
+    if not entrada_origem.get().strip() == "":
         if origem.is_dir():
-            if not entrada_destino.get() == "":
+            if not entrada_destino.get().strip() == "":
                 if Path(f"/{verificar_destino[0]}").is_dir():
                     button_cancelar.config(state="normal")
                     button_pausar.config(state="normal")
-                    metodos.iniciar_copia(entrada_origem.get().replace("\\", "/"),
-                                          entrada_destino.get().replace("\\", "/"),
+                    metodos.iniciar_copia(entrada_origem.get().strip().replace("\\", "/"),
+                                          entrada_destino.get().strip().replace("\\", "/"),
                                           root,
                                           progress_canvas,
                                           widgets,
@@ -195,7 +195,7 @@ def executar_acao():
                                           checkbox_origem.get(),
                                           checkbox_encerrar.get(),
                                           checkbox_desligar.get()),
-                    metodos.iniciar_contagem(entrada_origem.get().replace("\\", "/"),
+                    metodos.iniciar_contagem(entrada_origem.get().strip().replace("\\", "/"),
                                              label_tamanho_contagem)
                 else:
                     messagebox.showwarning("Aviso", "Selecionar pasta de destino válida")
