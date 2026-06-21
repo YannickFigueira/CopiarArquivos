@@ -64,6 +64,7 @@ espaco = 5
 largura_frame = 400
 top_frame = ttk.Frame(root, padding=0, width=largura_frame)
 top_frame.pack(fill="x")
+top_frame.grid_columnconfigure(2, weight=1)
 
 top_button_frame = ttk.Frame(root, padding=0, width=largura_frame)
 top_button_frame.pack(fill="x")
@@ -89,12 +90,12 @@ bottom_frame.pack(fill="x")
 label_origem = ttk.Label(top_frame, text="Origem:")
 label_origem.grid(row=0, column=0, padx=espaco, pady=espaco)
 
-largura_entradas = 50
+largura_entradas = 48
 entrada_origem = ttk.Entry(top_frame, width=largura_entradas)
 entrada_origem.grid(row=0, column=1, padx=espaco, pady=espaco)
 
 sel = 7
-button_selecionar_origem = ttk.Button(top_frame, text="...", width=sel, command=lambda: (entrada_origem.delete(0, "end"),
+button_selecionar_origem = ttk.Button(top_frame, text="...", command=lambda: (entrada_origem.delete(0, "end"),
                                                                               entrada_origem.insert(0, metodos.selecionar_pasta())))
 button_selecionar_origem.grid(row=0, column=2, padx=espaco, pady=espaco, sticky="we")
 
@@ -104,7 +105,7 @@ label_destino.grid(row=1, column=0, padx=espaco, pady=espaco)
 entrada_destino = ttk.Entry(top_frame, width=largura_entradas)
 entrada_destino.grid(row=1, column=1, padx=espaco, pady=espaco)
 
-button_selecionar_destino = ttk.Button(top_frame, text="...", width=sel, command=lambda: (entrada_destino.delete(0, "end"),
+button_selecionar_destino = ttk.Button(top_frame, text="...", command=lambda: (entrada_destino.delete(0, "end"),
                                                                               entrada_destino.insert(0, metodos.selecionar_pasta())))
 button_selecionar_destino.grid(row=1, column=2, padx=espaco, pady=espaco, sticky="we")
 
