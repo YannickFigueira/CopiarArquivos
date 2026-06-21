@@ -57,105 +57,116 @@ barra_menu.add_cascade(label="Ajuda", menu=menu_ajuda)
 # Menu Sair
 barra_menu.add_command(label="Sair", command=root.quit)
 
+## variaveis da janela
+espaco = 5
+
 # Frame para alinhar label e campo de texto lado a lado
-top_frame = ttk.Frame(root, padding=(10, 10, 10, 0))
-top_frame.grid(row=0, column=0, columnspan=2, sticky="w")
+largura_frame = 400
+top_frame = ttk.Frame(root, padding=0, width=largura_frame)
+top_frame.pack(fill="x")
 
-top_button_frame = ttk.Frame(root, padding=(10, 4, 10, 0))
-top_button_frame.grid(row=1, column=0, columnspan=2, sticky="w")
+top_button_frame = ttk.Frame(root, padding=0, width=largura_frame)
+top_button_frame.pack(fill="x")
+# Configura as colunas 0, 1 e 2 para expandirem igualmente (weight=1)
+top_button_frame.grid_columnconfigure(0, weight=1)
+top_button_frame.grid_columnconfigure(1, weight=1)
+top_button_frame.grid_columnconfigure(2, weight=1)
 
-middle_frame = ttk.Frame(root, padding=10)
-middle_frame.grid(row=2, column=0, columnspan=2, sticky="w")
+middle_frame = ttk.Frame(root, padding=0, width=largura_frame)
+middle_frame.pack(fill="x")
 
-bottom_frame = ttk.Frame(root, padding=10)
-bottom_frame.grid(row=6, column=0, columnspan=2, sticky="w")
+checkbox_frame = ttk.Frame(root, padding=0, width=largura_frame)
+checkbox_frame.pack(fill="x")
+# Expandir colunas igualmente
+checkbox_frame.grid_columnconfigure(0, weight=1)
+checkbox_frame.grid_columnconfigure(1, weight=1)
+
+bottom_frame = ttk.Frame(root, padding=0, width=largura_frame)
+bottom_frame.pack(fill="x")
 
 ### Fim dos frames ###
 
 label_origem = ttk.Label(top_frame, text="Origem:")
-label_origem.grid(row=0, column=0, padx=(0, 8), pady=(0, 8), sticky="w")
+label_origem.grid(row=0, column=0, padx=espaco, pady=espaco)
 
-largura_entradas = 51
+largura_entradas = 50
 entrada_origem = ttk.Entry(top_frame, width=largura_entradas)
-entrada_origem.grid(row=0, column=1, pady=(0, 8), sticky="w")
+entrada_origem.grid(row=0, column=1, padx=espaco, pady=espaco)
 
-button_selecionar_origem = ttk.Button(top_frame, text="...", command=lambda: (entrada_origem.delete(0, "end"),
+sel = 7
+button_selecionar_origem = ttk.Button(top_frame, text="...", width=sel, command=lambda: (entrada_origem.delete(0, "end"),
                                                                               entrada_origem.insert(0, metodos.selecionar_pasta())))
-button_selecionar_origem.grid(row=0, column=2, padx=(10, 0), pady=(0, 8), sticky="we")
+button_selecionar_origem.grid(row=0, column=2, padx=espaco, pady=espaco, sticky="we")
 
 label_destino = ttk.Label(top_frame, text="Destino:")
-label_destino.grid(row=1, column=0, padx=(0, 8), pady=(0, 8), sticky="w")
+label_destino.grid(row=1, column=0, padx=espaco, pady=espaco)
 
 entrada_destino = ttk.Entry(top_frame, width=largura_entradas)
-entrada_destino.grid(row=1, column=1, pady=(0, 8), sticky="w")
+entrada_destino.grid(row=1, column=1, padx=espaco, pady=espaco)
 
-button_selecionar_destino = ttk.Button(top_frame, text="...", command=lambda: (entrada_destino.delete(0, "end"),
+button_selecionar_destino = ttk.Button(top_frame, text="...", width=sel, command=lambda: (entrada_destino.delete(0, "end"),
                                                                               entrada_destino.insert(0, metodos.selecionar_pasta())))
-button_selecionar_destino.grid(row=1, column=2, padx=(10, 0), pady=(0, 8), sticky="we")
-
-largura = 22
-# Botão em baixo da área de texto
-button_executar_copia = ttk.Button(top_button_frame, text="Executar Cópia", width=largura, command=lambda: executar_acao())
-button_executar_copia.grid(row=0, column=0, padx=0, pady=(0, 10), sticky="we")
+button_selecionar_destino.grid(row=1, column=2, padx=espaco, pady=espaco, sticky="we")
 
 # Botão em baixo da área de texto
-button_cancelar = ttk.Button(top_button_frame, text="Cancelar", width=largura, command=lambda: metodos.parar_copia(button_cancelar))
-button_cancelar.grid(row=0, column=1, padx=5, pady=(0, 10), sticky="we")
+button_executar_copia = ttk.Button(top_button_frame, text="Executar Cópia", command=lambda: executar_acao())
+button_executar_copia.grid(row=0, column=0, padx=espaco, pady=espaco, sticky="we")
+
+# Botão em baixo da área de texto
+button_cancelar = ttk.Button(top_button_frame, text="Cancelar", command=lambda: metodos.parar_copia(button_cancelar))
+button_cancelar.grid(row=0, column=1, padx=espaco, pady=espaco, sticky="we")
 button_cancelar.config(state=tk.DISABLED)
 
-button_pausar = ttk.Button(top_button_frame, text="Pausar", width=largura, command=lambda: metodos.pausar_copia())
-button_pausar.grid(row=0, column=2, padx=0, pady=(0, 10), sticky="we")
+button_pausar = ttk.Button(top_button_frame, text="Pausar", command=lambda: metodos.pausar_copia())
+button_pausar.grid(row=0, column=2, padx=espaco, pady=espaco, sticky="we")
 button_pausar.config(state=tk.DISABLED)
 
 label_tamanho = ttk.Label(middle_frame, text="Tamanho:")
-label_tamanho.grid(row=0, column=0, padx=(0, 8), pady=(0, 8), sticky="w")
+label_tamanho.grid(row=0, column=0, padx=espaco, pady=espaco, sticky="w")
 
 label_tamanho_contagem = ttk.Label(middle_frame, text=8 * "--")
-label_tamanho_contagem.grid(row=0, column=1, padx=(0, 8), pady=(0, 8), sticky="w")
+label_tamanho_contagem.grid(row=0, column=1, padx=espaco, pady=espaco, sticky="w")
 
 # Checkbox em baixo
 checkbox_origem = tk.BooleanVar()
 checkbox_origem.set(True)
-checkbox = ttk.Checkbutton(root, text="Usar nome de origem", variable=checkbox_origem)
-checkbox.grid(row=3, column=0, padx=10, pady=(0, 8), sticky="w")
+checkbox = ttk.Checkbutton(checkbox_frame, text="Usar nome de origem", variable=checkbox_origem)
+checkbox.grid(row=0, column=0, padx=espaco, pady=espaco, sticky="w")
 
 checkbox_mover = tk.BooleanVar()
-checkbox = ttk.Checkbutton(root, text="Mover arquivos", variable=checkbox_mover)
-checkbox.grid(row=4, column=0, padx=10, pady=(0, 8), sticky="w")
+checkbox = ttk.Checkbutton(checkbox_frame, text="Mover arquivos", variable=checkbox_mover)
+checkbox.grid(row=1, column=0, padx=espaco, pady=espaco, sticky="w")
 checkbox.config(state="disabled")
 
 checkbox_encerrar = tk.BooleanVar()
-checkbox = ttk.Checkbutton(root, text="Encerrar programa", variable=checkbox_encerrar)
-checkbox.grid(row=3, column=1, padx=10, pady=(0, 8), sticky="w")
+checkbox = ttk.Checkbutton(checkbox_frame, text="Encerrar programa", variable=checkbox_encerrar)
+checkbox.grid(row=0, column=2, padx=espaco, pady=espaco, sticky="w")
 
 checkbox_desligar = tk.BooleanVar()
-checkbox = ttk.Checkbutton(root, text="Desligar sistema", variable=checkbox_desligar)
-checkbox.grid(row=4, column=1, padx=10, pady=(0, 8), sticky="w")
+checkbox = ttk.Checkbutton(checkbox_frame, text="Desligar sistema", variable=checkbox_desligar)
+checkbox.grid(row=1, column=2, padx=espaco, pady=espaco, sticky="w")
 
 # Área de texto em baixo da checkbox
-text_area = tk.Text(root, width=50, height=8)
-text_area.grid(row=5, column=0, columnspan=2, padx=10, pady=(0, 8), sticky="we")
+text_area = tk.Text(bottom_frame, width=largura_entradas, height=8)
+text_area.grid(row=0, column=0, columnspan=4, padx=espaco, pady=espaco, sticky="we")
 
 label_arquivo_atual = ttk.Label(bottom_frame, text="Progresso total:")
-label_arquivo_atual.grid(row=0, column=0, padx=(0, 8), pady=(0, 8), sticky="w")
+label_arquivo_atual.grid(row=1, column=0, padx=espaco, pady=espaco, sticky="w")
 
-progress_canvas = tk.Canvas(bottom_frame, width=390, height=25, bg="white", highlightthickness=1, highlightbackground="black")
-progress_canvas.grid(row=0, column=1, columnspan=3, padx=(10, 0), pady=(0, 8), sticky="we")
+progress_canvas = tk.Canvas(bottom_frame, height=25, bg="white", highlightthickness=1, highlightbackground="black")
+progress_canvas.grid(row=1, column=1, columnspan=3, padx=espaco, pady=espaco, sticky="e")
 
 label_copiado = ttk.Label(bottom_frame, text="Copiado:")
-label_copiado.grid(row=1, column=0, padx=(0, 8), pady=(0, 8), sticky="w")
+label_copiado.grid(row=2, column=0, padx=espaco, pady=espaco, sticky="w")
 
 label_copiado_contagem = ttk.Label(bottom_frame, text=8*"--")
-label_copiado_contagem.grid(row=1, column=1, padx=(0, 8), pady=(0, 8), sticky="w")
+label_copiado_contagem.grid(row=2, column=1, padx=espaco, pady=espaco, sticky="w")
 
 label_tempo = ttk.Label(bottom_frame, text="Tempo decorrido:")
-label_tempo.grid(row=1, column=2, padx=(0, 8), pady=(0, 8), sticky="e")
+label_tempo.grid(row=2, column=2, padx=espaco, pady=espaco, sticky="e")
 
 label_tempo_decorrido = ttk.Label(bottom_frame, text="--:--:--.----")
-label_tempo_decorrido.grid(row=1, column=3, padx=(0, 8), pady=(0, 8), sticky="e")
-
-# Tornar a coluna expansível para a área de texto crescer horizontalmente
-root.columnconfigure(0, weight=1)
+label_tempo_decorrido.grid(row=2, column=3, padx=espaco, pady=espaco, sticky="e")
 
 ### Comandos ###
 def executar_acao():

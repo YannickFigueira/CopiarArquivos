@@ -221,7 +221,8 @@ def selecionar_pasta():
     if pasta:  # se o usuário não cancelar
         return pasta
     else:
-        return None
+        return ""
+
 def formatar_tamanho(tamanho):
     tamanho_kb = tamanho / 1024
     tamanho_mb = tamanho / 1024 / 1024
