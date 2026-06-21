@@ -73,3 +73,7 @@
 - Adicionado botão para pausar a cópia dos arquivos
 - Ajustado tamanho da barra de progresso
 - Adicionado alteração nos botões de cancelar e pausar
+
+## [4.1.11] - 2026-06-21
+### Changes
+- Pequenos ajustes no código

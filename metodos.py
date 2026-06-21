@@ -113,7 +113,7 @@ def copiando_arquivos(texto_origem,
 
     # lista todos os arquivos e subpastas
     arquivos = []
-    for raiz, dirs, files in os.walk(origem, onerror=lambda e: None):
+    for raiz, dirs, files in os.walk(origem, onerror=lambda a: None):
         for f in files:
             arquivos.append(Path(raiz) / f)
 
