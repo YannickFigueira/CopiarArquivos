@@ -172,7 +172,6 @@ class Controles:
                    self.view.controles['button_executar_copia']]
 
         texto_origem = self.view.controles['entrada_origem'].get().strip().replace("\\", "/")
-        origem = Path(texto_origem)
         destino = self.view.controles['entrada_destino'].get().strip().replace("\\", "/")
         verificar_destino = destino.split("/")
 
@@ -183,12 +182,12 @@ class Controles:
             verificar = f"/{verificar_destino[0]}"
 
         if not texto_origem == "":
-            if origem.is_dir():
+            if Path(texto_origem).is_dir():
                 if not destino == "":
                     if Path(verificar).is_dir():
                         self.view.controles['button_cancelar'].config(state="normal")
                         self.view.controles['button_pausar'].config(state="normal")
-                        self.iniciar_copia(origem, destino, widgets)
+                        self.iniciar_copia(texto_origem, destino, widgets)
                         self.iniciar_contagem()
                     else:
                         messagebox.showwarning("Aviso", "Selecionar pasta de destino válida")
@@ -219,7 +218,7 @@ class Controles:
         global cancelar
         global pausar
         parar_tempo.clear()
-        pasta_matriz = str(texto_origem).split("/")
+        pasta_matriz = texto_origem.split("/")
         origem = Path(texto_origem)
 
         if self.view.controles['checkbox_origem'].get():
