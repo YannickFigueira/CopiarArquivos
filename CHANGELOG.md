@@ -74,10 +74,7 @@
 - Ajustado tamanho da barra de progresso
 - Adicionado alteração nos botões de cancelar e pausar
 
-## [4.1.11] - 2026-06-21
-### Changes
-- Pequenos ajustes no código
-
 ## [4.2.11] - 2026-06-23
 ### Changes
+- Pequenos ajustes no código
 - Reescrito todo o código para melhor manutenção
