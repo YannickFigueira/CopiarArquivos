@@ -176,10 +176,16 @@ class Controles:
         destino = self.view.controles['entrada_destino'].get().strip().replace("\\", "/")
         verificar_destino = destino.split("/")
 
+        verificar = ""
+        if system == 'Windows':
+            verificar = f"{verificar_destino[0]}"
+        elif system == 'Linux':
+            verificar = f"/{verificar_destino[0]}"
+
         if not texto_origem == "":
             if origem.is_dir():
                 if not destino == "":
-                    if Path(f"/{verificar_destino[0]}").is_dir():
+                    if Path(verificar).is_dir():
                         self.view.controles['button_cancelar'].config(state="normal")
                         self.view.controles['button_pausar'].config(state="normal")
                         self.iniciar_copia(origem, destino, widgets)
