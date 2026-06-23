@@ -66,7 +66,7 @@
 ### Fixed
 - Criado verificação dos campos de texto para não executar vazio ou com pastas inexistentes
 - Configurado botão de cancelar para prevenir encerrar o programa de imediato
-- Redesenhado toda a interface para corrigir o disign no Windows
+- Redesenhado toda a interface para corrigir o design no Windows
 
 ### Changed
 - Configurado para bloquear os botões para selecionar as pastas durante a cópia
@@ -77,3 +77,7 @@
 ## [4.1.11] - 2026-06-21
 ### Changes
 - Pequenos ajustes no código
+
+## [4.2.11] - 2026-06-23
+### Changes
+- Reescrito todo o código para melhor manutenção
