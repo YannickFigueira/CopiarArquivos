@@ -78,3 +78,10 @@
 ### Changes
 - Pequenos ajustes no código
 - Reescrito todo o código para melhor manutenção
+
+## [4.2.12] - 2026-06-25
+### Fixed
+- Modificado verificação dos arquivos já copiados pela data de modificação
+
+## Changes
+- Adicionado estilo.py
