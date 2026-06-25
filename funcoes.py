@@ -19,6 +19,34 @@ system = platform.system()  # Retorna 'Linux', 'Windows', 'Darwin' (Mac)
 parar_tempo = threading.Event()
 pausar_tempo = threading.Event()
 
+# --- Registro de erros ---
+arquivo_erro = estilo.ARQUIVO_ERRO
+home_dir = os.path.expanduser('~')
+if system == 'Linux':
+    if not os.path.exists(f"{home_dir}/log"):
+        os.mkdir(f"{home_dir}/log")
+
+    logging.basicConfig(
+        filename=f"{home_dir}/log/{arquivo_erro}",        # nome do arquivo
+        level=logging.ERROR,         # nível de log
+        format="%(asctime)s - %(levelname)s - %(message)s")
+
+    destino_dir = "/tmp/XMLs"
+    if not os.path.exists(destino_dir):
+        os.makedirs(destino_dir)
+elif system == 'Windows':
+    if not os.path.exists(f"c:/temp"):
+        os.mkdir(f"c:/temp")
+
+    logging.basicConfig(
+        filename=f"c:/temp/{arquivo_erro}",  # nome do arquivo
+        level=logging.ERROR,  # nível de log
+        format="%(asctime)s - %(levelname)s - %(message)s")
+
+    destino_dir = "C:\\temp\\XMLs"
+    if not os.path.exists(destino_dir):
+        os.makedirs(destino_dir)
+
 # --- Variáveis globais ---
 cancelar = False
 pausar = False
