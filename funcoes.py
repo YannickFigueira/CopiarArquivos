@@ -313,7 +313,9 @@ class Controles:
                         # 1. Se o arquivo não existe no destino, copia direto
                         if not destino_item.is_file():
                             shutil.copy2(item, destino_item)
-                        elif item.stat().st_size > destino_item.stat().st_size:
+
+                        # 2. Se ele existe, compara as datas de modificação
+                        elif item.stat().st_mtime > destino_item.stat().st_mtime:
                             shutil.copy2(item, destino_item)
 
                         tamanho_item += item.stat().st_size
