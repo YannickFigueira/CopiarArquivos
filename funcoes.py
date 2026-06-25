@@ -55,7 +55,7 @@ pausar = False
 def abrir_logs():
     home_dir = os.path.expanduser('~')
     if platform.system() == "Windows":
-        arquivo = "C:\\temp\\copiararquivos.log"
+        arquivo = f"C:\\temp\\{estilo.ARQUIVO_ERRO}"
         subprocess.run(["notepad", arquivo])
     elif platform.system() == "Linux":
         arquivo = f"{home_dir}/log/copiararquivos.log"
