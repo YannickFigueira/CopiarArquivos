@@ -129,7 +129,7 @@ class Controles:
                                command=lambda: self.visitar_site())
         self.view.controles['menu_ajuda'].add_command(label="Sair",
                                                         command=lambda: self.fechar())
-        # --- Controles da Janela Principal
+        # --- Controles da Janela Principal ---
         self.view.controles['button_selecionar_origem'].config(command=lambda: self.selecionar_origem())
         self.view.controles['button_selecionar_destino'].config(command=lambda: self.selecionar_destino())
         self.view.controles['button_executar_copia'].config(command=lambda: self.executar_acao())
