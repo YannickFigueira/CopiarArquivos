@@ -58,7 +58,7 @@ def abrir_logs():
         arquivo = f"C:\\temp\\{estilo.ARQUIVO_ERRO}"
         subprocess.run(["notepad", arquivo])
     elif platform.system() == "Linux":
-        arquivo = f"{home_dir}/log/copiararquivos.log"
+        arquivo = f"{home_dir}/log/{estilo.ARQUIVO_ERRO}"
         subprocess.run(["xdg-open", arquivo])  # ou "gedit"
     else:
         print("Sistema não suportado")
