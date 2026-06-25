@@ -121,7 +121,7 @@ class Controles:
                 self._vincular_copiar_arquivos()
 
     def _vincular_copiar_arquivos(self):
-        # --- Controle dos Menus ---
+        # --- Controle do Menu ---
         self.view.controles['menu_arquivo'].add_command(label="Abrir log de ERRO", command=lambda: abrir_logs())
         self.view.controles['menu_ajuda'].add_command(label="Verificar atualização",
                                command=lambda: verificarversao.consultar_lancamento(self.repo, self.version))
