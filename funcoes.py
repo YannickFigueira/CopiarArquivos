@@ -310,6 +310,7 @@ class Controles:
 
                         destino_item.parent.mkdir(parents=True, exist_ok=True)
 
+                        # 1. Se o arquivo não existe no destino, copia direto
                         if not destino_item.is_file():
                             shutil.copy2(item, destino_item)
                         elif item.stat().st_size > destino_item.stat().st_size:
