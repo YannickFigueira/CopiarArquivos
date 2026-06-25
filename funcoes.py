@@ -10,7 +10,7 @@ import webbrowser
 from pathlib import Path
 from tkinter import messagebox, filedialog
 
-import verificarversao
+import verificarversao, estilo
 
 # Detecta sistema operacional
 system = platform.system()  # Retorna 'Linux', 'Windows', 'Darwin' (Mac)

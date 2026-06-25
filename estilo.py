@@ -1,0 +1,1 @@
+ARQUIVO_ERRO = "copiar_arquivos.log"
