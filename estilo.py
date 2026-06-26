@@ -1,6 +1,7 @@
-# Versão e repositório
+# Versão, repositório, program title
 VERSION = "v4.2.12"
 REPO = "CopiarArquivos"
+NOME_PROGRAMA = "Cópia de Arquivos"
 
 # Margens padrão para janelas e frames
 PADX_JANELA = 20

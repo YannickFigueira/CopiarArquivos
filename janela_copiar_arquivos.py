@@ -1,30 +1,26 @@
 import tkinter as tk
 from tkinter import ttk
 
-PROGRAMA_TITLE = "Copiar Arquivos"
+import estilo
+
 ## variaveis da janela
 padding_frame = 2
 padding_controls = 5
 largura_texto = 48
 
 class CopiarArquivos:
-    def __init__(self, janela_principal, repo, version):
+    def __init__(self, janela_principal):
         self.janela_principal = janela_principal
-        self.janela_principal.title(f"{PROGRAMA_TITLE} {version}")
+        self.janela_principal.title(f"{estilo.NOME_PROGRAMA} {estilo.VERSION}")
         self.janela_principal.resizable(False, False)
 
         self.nome_janela = "copiararquivos"  # Identificador para o seu controlador
         self.controles = {}
 
-        self._criar_layout(repo, version)
+        self._criar_layout()
         self._criar_barra_menu()
 
-    def _criar_layout(self, repo, version):
-        # --- Variáveis ---
-        self.controles['var_repo'] = tk.StringVar(value=repo)
-        self.controles['var_version'] = tk.StringVar(value=version)
-        self.controles['var_title'] = tk.StringVar(value=f"{PROGRAMA_TITLE}")
-
+    def _criar_layout(self):
         # --- Controles ---
         self.controles['janela_principal'] = self.janela_principal
 

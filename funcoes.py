@@ -31,9 +31,6 @@ if system == 'Linux':
         level=logging.ERROR,         # nível de log
         format="%(asctime)s - %(levelname)s - %(message)s")
 
-    destino_dir = "/tmp/XMLs"
-    if not os.path.exists(destino_dir):
-        os.makedirs(destino_dir)
 elif system == 'Windows':
     if not os.path.exists(f"c:/temp"):
         os.mkdir(f"c:/temp")
@@ -42,10 +39,6 @@ elif system == 'Windows':
         filename=f"c:/temp/{arquivo_erro}",  # nome do arquivo
         level=logging.ERROR,  # nível de log
         format="%(asctime)s - %(levelname)s - %(message)s")
-
-    destino_dir = "C:\\temp\\XMLs"
-    if not os.path.exists(destino_dir):
-        os.makedirs(destino_dir)
 
 # --- Variáveis globais ---
 cancelar = False
@@ -172,7 +165,7 @@ class Controles:
         pagina = "https://github.com/YannickFigueira"
         resposta = messagebox.askyesno(
             "Sobre",
-            f"{self.programa_title} v{self.version}\n"
+            f"{estilo.NOME_PROGRAMA} v{estilo.VERSION}\n"
             f"Desenvolvedor YannickFigueira\n"
             f"chronostimeinchain@gmail.com\n\n"
             f"Deseja visitar a página?"
