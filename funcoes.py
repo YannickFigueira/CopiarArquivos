@@ -142,7 +142,7 @@ class Controles:
         # --- Controle do Menu ---
         self.view.controles['menu_arquivo'].add_command(label="Abrir log de ERRO", command=lambda: abrir_logs())
         self.view.controles['menu_ajuda'].add_command(label="Verificar atualização",
-                               command=lambda: verificarversao.consultar_lancamento(self.repo, self.version))
+                               command=lambda: verificarversao.consultar_lancamento(estilo.REPO, estilo.VERSION))
         self.view.controles['menu_ajuda'].add_command(label="Sobre",
                                command=lambda: self.visitar_site())
         self.view.controles['menu_ajuda'].add_command(label="Sair",
