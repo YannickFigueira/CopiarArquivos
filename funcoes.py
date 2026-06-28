@@ -146,7 +146,7 @@ class Controles:
         self.view.controles['menu_ajuda'].add_command(label="Sobre",
                                command=lambda: self.visitar_site())
         self.view.controles['menu_ajuda'].add_command(label="Sair",
-                                                        command=lambda: self.fechar())
+                                                        command=lambda: self.fechar('janela_principal'))
         # --- Controles da Janela Principal ---
         self.view.controles['button_selecionar_origem'].config(command=lambda: self.selecionar_origem())
         self.view.controles['button_selecionar_destino'].config(command=lambda: self.selecionar_destino())
@@ -170,8 +170,8 @@ class Controles:
         if resposta:
             webbrowser.open(pagina)
 
-    def fechar(self):
-        self.view.controles['janela_principal'].quit()
+    def fechar(self, nome):
+        self.view.controles[nome].quit()
 
     # --- Comando dos Controles ---
     def selecionar_origem(self):
