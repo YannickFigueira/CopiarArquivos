@@ -129,6 +129,18 @@ def pausar_copia():
     pausar = True
 
 # --- Inicio dos Controles
+def visitar_site():
+    pagina = "https://github.com/YannickFigueira"
+    resposta = messagebox.askyesno(
+        "Sobre",
+        f"{estilo.NOME_PROGRAMA} {estilo.VERSION}\n"
+        f"Desenvolvedor YannickFigueira\n"
+        f"chronostimeinchain@gmail.com\n\n"
+        f"Deseja visitar a página?"
+    )
+    if resposta:
+        webbrowser.open(pagina)
+
 class Controles:
     def __init__(self, view):
         self.view = view
@@ -144,7 +156,7 @@ class Controles:
         self.view.controles['menu_ajuda'].add_command(label="Verificar atualização",
                                command=lambda: verificarversao.consultar_lancamento(estilo.REPO, estilo.VERSION))
         self.view.controles['menu_ajuda'].add_command(label="Sobre",
-                               command=lambda: self.visitar_site())
+                               command=lambda: visitar_site())
         self.view.controles['menu_ajuda'].add_command(label="Sair",
                                                         command=lambda: self.fechar('janela_principal'))
         # --- Controles da Janela Principal ---
@@ -157,18 +169,7 @@ class Controles:
         self.clipboard(self.view.controles['entrada_origem'])
         self.clipboard(self.view.controles['entrada_destino'])
 
-    # --- Comandos dos Menus
-    def visitar_site(self):
-        pagina = "https://github.com/YannickFigueira"
-        resposta = messagebox.askyesno(
-            "Sobre",
-            f"{estilo.NOME_PROGRAMA} v{estilo.VERSION}\n"
-            f"Desenvolvedor YannickFigueira\n"
-            f"chronostimeinchain@gmail.com\n\n"
-            f"Deseja visitar a página?"
-        )
-        if resposta:
-            webbrowser.open(pagina)
+    # --- Comandos dos Menus ---
 
     def fechar(self, nome):
         self.view.controles[nome].quit()
