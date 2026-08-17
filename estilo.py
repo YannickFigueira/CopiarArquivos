@@ -1,5 +1,5 @@
 # Versão, repositório, program title
-VERSION = "v4.2.12"
+VERSION = "v4.2.13"
 REPO = "CopiarArquivos"
 NOME_PROGRAMA = "Cópia de Arquivos"
 

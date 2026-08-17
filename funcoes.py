@@ -46,7 +46,6 @@ pausar = False
 
 # --- Comandos dos Menus
 def abrir_logs():
-    home_dir = os.path.expanduser('~')
     if platform.system() == "Windows":
         arquivo = f"C:\\temp\\{estilo.ARQUIVO_ERRO}"
         subprocess.run(["notepad", arquivo])
@@ -85,18 +84,17 @@ def atualiza_tempo(inicio, label):
 
 # --- Formatar exibição dos tamanhos dos arquivos
 def formatar_tamanho(tamanho):
-    tamanho_kb = tamanho / 1024
-    tamanho_mb = tamanho / 1024 / 1024
-    tamanho_gb = tamanho / 1024 / 1024 / 1024
+    # Converte o valor para float com segurança
+    try:
+        tamanho = float(tamanho)
+    except (ValueError, TypeError):
+        return "0.00 B"
 
-    if tamanho > (1024 ** 3):
-        return f"{tamanho_gb:.2f} GB"
-    elif tamanho > (1024 ** 2):
-        return f"{tamanho_mb:.2f} MB"
-    elif tamanho > 1024:
-        return f"{tamanho_kb:.2f} KB"
-    else:
-        return f"{tamanho:.2f} B"
+    for unidade in ['B', 'KB', 'MB', 'GB', 'TB']:
+        if tamanho < 1024.0:
+            return f"{tamanho:.2f} {unidade}"
+        tamanho /= 1024.0
+    return f"{tamanho:.2f} PB"
 
 ### Atualiza a barra de progresso ###
 def atualizar_barra(valor, total, progress_canvas):
@@ -116,11 +114,11 @@ def desligar_computador():
 
     if "windows" in sistema:
         # /s = desligar, /t 0 = tempo de espera (0 segundos)
-        os.system("shutdown /s /t 0")
+        subprocess.run("shutdown /s /t 0")
     elif "linux" in sistema:
         # h = halt/desligar, now = imediatamente
         # Nota: no Linux, pode ser necessário privilégios de root (sudo) dependendo da distro
-        os.system("shutdown -h now")
+        subprocess.run("shutdown -h now")
     else:
         print("Sistema operacional não suportado para esta ação.")
 
