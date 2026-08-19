@@ -7,7 +7,7 @@ import time
 from pathlib import Path
 from tkinter import messagebox
 
-from arquivo_log import registrar_log, gerar_arquivo_log
+from arquivo_log import registrar_log, gerar_arquivo_log, limpar_logs
 
 # Detecta sistema operacional
 system = platform.system()  # Retorna 'Linux', 'Windows', 'Darwin' (Mac)
@@ -153,6 +153,7 @@ def iniciar_copia(pastas_origem, pastas_destino, view):
 def copiando_pastas(pastas_origem, pastas_destino, view):
     caminho_log = gerar_arquivo_log()
     registrar_log(caminho_log, "Iniciando processo de cópia.")
+    limpar_logs()
     view.controles['text_area'].delete("1.0", "end")  # apaga tudo
 
     inicio = time.time()  # marca o início da execução
