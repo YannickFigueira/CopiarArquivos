@@ -1,16 +1,21 @@
 import platform
 import subprocess
+import threading
 from datetime import datetime
 
 from estilo import log_files
 
 def abrir_logs(view):
+    t = threading.Thread(target=abrir_arquivo, args=(view,), daemon=True)
+    t.start()
+
+def abrir_arquivo(view):
     arquivo = view.controles['cmb_selecao'].get()
     if platform.system() == "Windows":
-        #arquivo = "C:\\Programa Igreja\\doc\\CHANGELOG.md"
-        subprocess.run(["notepad", arquivo])
+        # arquivo = "C:\\Programa Igreja\\doc\\CHANGELOG.md"
+        subprocess.run(["notepad", log_files / arquivo])
     elif platform.system() == "Linux":
-        #arquivo = "/usr/share/doc/programaigreja/CHANGELOG.md"
+        # arquivo = "/usr/share/doc/programaigreja/CHANGELOG.md"
         subprocess.run(["xdg-open", log_files / arquivo])  # ou "gedit"
     else:
         print("Sistema não suportado")
