@@ -85,3 +85,8 @@
 
 ## Changes
 - Adicionado estilo.py
+
+## [4.2.13] - 2026-08-18
+### Changes
+- Otimizado excução da cópia com a adição de um novo método
+- Modificado registro dos logs, deixado mais limpo
