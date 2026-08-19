@@ -21,6 +21,11 @@ if not os.path.exists(log_files):
     os.mkdir(log_files)
 
 # Margens padrão para janelas e frames
+# Medidas
+ESPACO = 5
+LINHA_PAINEL_ESQUERDO = 0
+
+# Margens padrão para janelas e frames
 PADX_JANELA = 20
 PADY_JANELA = 20
 
@@ -30,3 +35,7 @@ PADY_COMPONENTE = 5
 
 # Arquivo de log
 ARQUIVO_ERRO = "copiar_arquivos.log"
+
+# Estilo
+FONTE_VAZIA=("", 11, "normal")
+FONTE_ARIAL=("Arial", 11, "normal")

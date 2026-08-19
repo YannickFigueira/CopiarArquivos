@@ -2,7 +2,7 @@ import argparse
 import tkinter as tk
 
 import estilo
-from funcoes import Controles
+from funcoes import Funcoes
 from janela_copiar_arquivos import CopiarArquivos
 
 # --- Configuração do CLI (Argparse) ---
@@ -19,7 +19,7 @@ if __name__ == "__main__":
     visual = CopiarArquivos(root)
 
     # 3. Passa a visão para a sua classe de Lógica controlar
-    logica = Controles(visual)
+    logica = Funcoes(visual)
 
     # 4. Inicia o programa
     root.mainloop()

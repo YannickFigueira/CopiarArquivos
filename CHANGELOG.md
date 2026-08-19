@@ -90,3 +90,4 @@
 ### Changes
 - Otimizado excução da cópia com a adição de um novo método
 - Modificado registro dos logs, deixado mais limpo
+- Adicionado nova janela e método para gerenciar os logs com arquivo_log.py

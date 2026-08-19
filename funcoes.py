@@ -8,6 +8,8 @@ from pathlib import Path
 from tkinter import messagebox, filedialog
 
 import verificarversao, estilo, copiar_arquivos
+from janela_logs import JanelaLogs
+from arquivo_log import ler_pasta_log, abrir_logs
 
 # Detecta sistema operacional
 system = platform.system()  # Retorna 'Linux', 'Windows', 'Darwin' (Mac)
@@ -33,17 +35,7 @@ elif system == 'Windows':
 # --- Variáveis globais ---
 cancelar = False
 pausar = False
-
-# --- Comandos dos Menus
-def abrir_logs():
-    if platform.system() == "Windows":
-        arquivo = f"C:\\temp\\{estilo.ARQUIVO_ERRO}"
-        subprocess.run(["notepad", arquivo])
-    elif platform.system() == "Linux":
-        arquivo = f"{home_dir}/log/{estilo.ARQUIVO_ERRO}"
-        subprocess.run(["xdg-open", arquivo])  # ou "gedit"
-    else:
-        print("Sistema não suportado")
+janela_logs_aberta = False
 
 # --- Comandos gerais ---
 def selecionar_pasta():
@@ -52,7 +44,6 @@ def selecionar_pasta():
         return pasta
     else:
         return ""
-
 
 # --- Inicio dos Controles
 def visitar_site():
@@ -67,7 +58,7 @@ def visitar_site():
     if resposta:
         webbrowser.open(pagina)
 
-class Controles:
+class Funcoes:
     def __init__(self, view):
         self.view = view
 
@@ -75,10 +66,12 @@ class Controles:
         if hasattr(view, 'nome_janela'):
             if view.nome_janela == "copiararquivos":
                 self._vincular_copiar_arquivos()
+            elif view.nome_janela == "logs":
+                self._vincular_logs()
 
     def _vincular_copiar_arquivos(self):
         # --- Controle do Menu ---
-        self.view.controles['menu_arquivo'].add_command(label="Abrir log de ERRO", command=lambda: abrir_logs())
+        self.view.controles['menu_arquivo'].add_command(label="Abrir log", command=lambda: self.abrir_janela_logs())
         self.view.controles['menu_ajuda'].add_command(label="Verificar atualização",
                                command=lambda: verificarversao.consultar_lancamento(estilo.REPO, estilo.VERSION))
         self.view.controles['menu_ajuda'].add_command(label="Sobre",
@@ -86,6 +79,8 @@ class Controles:
         self.view.controles['menu_ajuda'].add_command(label="Sair",
                                                         command=lambda: self.fechar('janela_principal'))
         # --- Controles da Janela Principal ---
+        self.view.controles['janela_principal'].protocol("WM_DELETE_WINDOW",
+                                                         lambda: self.fechar_janelas('janela_principal'))
         self.view.controles['button_selecionar_origem'].config(command=lambda: self.selecionar_origem())
         self.view.controles['button_selecionar_destino'].config(command=lambda: self.selecionar_destino())
         self.view.controles['button_executar_copia'].config(command=lambda: self.executar_acao())
@@ -95,8 +90,34 @@ class Controles:
         self.clipboard(self.view.controles['entrada_origem'])
         self.clipboard(self.view.controles['entrada_destino'])
 
-    # --- Comandos dos Menus ---
+    def _vincular_logs(self):
+        # --- Inicialização da janela logs ---
+        arquivos_log = ler_pasta_log()
+        texto_log = "\n".join([f"{item}" for item in arquivos_log])
 
+        # --- Controles da Janlea Logs ---
+        self.view.controles['janela_logs'].protocol("WM_DELETE_WINDOW",
+                                                         lambda: self.fechar_janelas('janela_logs'))
+
+        self.view.controles['lbl_logs'].config(text=texto_log)
+        self.view.controles['cmb_selecao'].config(values=arquivos_log)
+        self.view.controles['cmb_selecao'].current(0)
+        self.view.controles['btn_abrir_logs'].config(command=lambda: abrir_logs(self.view))
+
+    # --- Inicialização das janelas ---
+    def abrir_janela_logs(self):
+        global janela_logs_aberta
+        # 1. Cria a parte visual
+        visual = JanelaLogs(self.view.controles['janela_principal'])
+
+        # 2. Cria a lógica e passa a visão para ela controlar
+        logica = Funcoes(visual)
+
+        janela_logs_aberta = True
+        logica.view.controles['janela_logs'].wait_window()
+        janela_logs_aberta = False
+
+    # --- Comandos dos Menus ---
     def fechar(self, nome):
         self.view.controles[nome].quit()
 
@@ -142,6 +163,7 @@ class Controles:
             messagebox.showwarning("Aviso", "Selecionar a pasta de origem, ou colar o caminho")
             self.view.controles['entrada_origem'].focus_set()
 
+    # --- Controles gerais ---
     def clipboard(self, entrada):
         def mostrar_menu(event):
             # Guardar qual Entry foi clicado
@@ -178,3 +200,14 @@ class Controles:
 
         # Associar clique direito a ambos os Entry
         entrada.bind("<Button-3>", mostrar_menu)
+
+
+    def fechar_janelas(self, janela):
+        global janela_logs_aberta
+
+        match janela:
+            case 'janela_principal':
+                if janela_logs_aberta:
+                    return
+
+        self.view.controles[f'{janela}'].destroy()
