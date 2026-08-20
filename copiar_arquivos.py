@@ -20,7 +20,7 @@ tarefas_executando = []
 cancelar = False
 pausar = False
 liberar_total = False
-erro = False
+erro_encontrado = False
 total_arquivos = 0
 contador = 1
 soma = 0
@@ -150,7 +150,8 @@ def iniciar_copia(pastas_origem, pastas_destino, view):
     t.start()
 
 def copiando_pastas(pastas_origem, pastas_destino, view):
-    global erro
+    global erro_encontrado
+    erro_encontrado = False
     caminho_log = gerar_arquivo_log()
     registrar_log(caminho_log, "Iniciando processo de cópia.")
     limpar_logs()
@@ -189,7 +190,7 @@ def copiando_pastas(pastas_origem, pastas_destino, view):
     view.controles['button_cancelar'].config(state="disabled")
     view.controles['button_pausar'].config(state="disabled")
 
-    if erro:
+    if erro_encontrado:
         messagebox.showwarning("Erro", "Foi encontrado erros durante a cópia, vá em Arquivos -> Abrir log, para verificar")
 
     if view.controles['checkbox_desligar'].get():
@@ -202,7 +203,7 @@ def copiando_pastas(pastas_origem, pastas_destino, view):
     registrar_log(caminho_log, "Processo finalizado.\n" + ("_" * 40))
 
 def copiando_arquivos(origem, destino, view, caminho_log):
-    global cancelar, pausar, contador, total_arquivos, soma, erro
+    global cancelar, pausar, contador, total_arquivos, soma, erro_encontrado
     lbl_copiado_tamanho = view.controles['label_copiado_contagem']
 
     registrar_log(caminho_log, f"Copiando pasta {origem}")
@@ -258,7 +259,7 @@ def copiando_arquivos(origem, destino, view, caminho_log):
 
                 copiar(origem_arquivo, destino_arquivo)
             except Exception as e:
-                erro = True
+                erro_encontrado = True
                 registrar_log(caminho_log, f"Erro ao copiar: {e} -> {origem_arquivo}")
                 continue
 
