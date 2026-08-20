@@ -156,6 +156,7 @@ def copiando_pastas(pastas_origem, pastas_destino, view):
     limpar_logs()
     view.controles['text_area'].delete("1.0", "end")  # apaga tudo
 
+    parar_tempo.clear()
     inicio = time.time()  # marca o início da execução
     # inicia a thread do tempo (daemon para não travar saída)
     thread_tempo = threading.Thread(target=atualiza_tempo, args=(inicio, view.controles['label_tempo_decorrido']),

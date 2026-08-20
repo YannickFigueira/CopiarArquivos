@@ -1,7 +1,6 @@
 import logging
 import os
 import platform
-import subprocess
 import tkinter as tk
 import webbrowser
 from pathlib import Path
