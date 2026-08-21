@@ -170,7 +170,11 @@ def copiando_pastas(pastas_origem, pastas_destino, view):
             caminho_origem = Path(origem)
             base_destino = Path(destino_base)
             # / une caminhos automaticamente independente do S.O.
-            pasta_destino_final = base_destino / caminho_origem.name
+            if view.controles['checkbox_origem'].get():
+                pasta_destino_final = base_destino / caminho_origem.name
+            else:
+                pasta_destino_final = base_destino
+
             copiando_arquivos(caminho_origem, pasta_destino_final, view, caminho_log)
 
     finally:
