@@ -23,7 +23,6 @@ liberar_total = False
 erro_encontrado = False
 total_arquivos = 0
 tamanho_total = 0
-contador = 1
 soma = 0
 
 def atualiza_tempo(inicio, label):
@@ -97,7 +96,7 @@ def tamanho_pasta(view, pastas_origem, liberar):
         for item in ver_pasta.rglob("*"):
             if item.is_file():
                 total_arquivos += 1
-                tamanho_total += item.stat().st_size
+                tamanho_total += item.stat(follow_symlinks=False).st_size
 
     lbl_tamanho_exibir.after(0, lambda: view.controles['label_tamanho_contagem'].config(text=formatar_tamanho(tamanho_total)))
 
@@ -136,8 +135,7 @@ def desligar_computador():
 
 # --- Execução da cópia dos arquivos ---
 def iniciar_copiar_arquivos(view, pastas_origem, pastas_destino):
-    global contador, soma
-    contador = 1
+    global soma
     soma = 0
     alterar_estado_controles(view, "disabled")
     iniciar_calculo_tamanho(view, pastas_origem, "execucao")
@@ -155,7 +153,7 @@ def copiando_pastas(pastas_origem, pastas_destino, view):
     global erro_encontrado
     erro_encontrado = False
     caminho_log = gerar_arquivo_log()
-    registrar_log(caminho_log, "Iniciando processo de cópia.")
+    registrar_log(caminho_log, "[INFO] Iniciando processo de cópia.")
     limpar_logs()
     view.controles['text_area'].delete("1.0", "end")  # apaga tudo
 
@@ -206,78 +204,81 @@ def copiando_pastas(pastas_origem, pastas_destino, view):
     if view.controles['var_chk_encerrar'].get():
         view.controles['janela_principal'].destroy()
 
-    registrar_log(caminho_log, "Processo finalizado.\n" + ("_" * 40))
+    registrar_log(caminho_log, "[INFO] Processo finalizado.\n" + ("_" * 40))
 
 def copiando_arquivos(origem, destino, view, caminho_log):
-    global cancelar, pausar, contador, tamanho_total, soma, erro_encontrado
+    global cancelar, pausar, tamanho_total, soma, erro_encontrado
     lbl_copiado_tamanho = view.controles['label_copiado_contagem']
-
-    registrar_log(caminho_log, f"Copiando pasta {origem}")
+    registrar_log(caminho_log, f"[INFO] Copiando pasta {origem}")
     for raiz, dirs, files in origem.walk(origem, on_error=lambda a: None):
         destino_final = destino / raiz.relative_to(origem)
-        if raiz.is_dir():
-            destino_final.mkdir(parents=True, exist_ok=True)
+        try:
+            if raiz.is_dir():
+                destino_final.mkdir(parents=True, exist_ok=True)
 
-        if cancelar:
-            print(f"Acionado cancelar...")
-            view.controles['text_area'].delete(1.0, "end")  # apaga tudo
-            view.controles['progress_canvas'].delete("all")
-            cancelar = False
-            break
+            if cancelar:
+                view.controles['text_area'].delete(1.0, "end")  # apaga tudo
+                view.controles['progress_canvas'].delete("all")
+                cancelar = False
+                break
 
-        for f in files:
-            if pausar:
-                messagebox.showinfo("Pausa", "Tarefa pausada")
-                pausar = False
-
-            origem_arquivo = raiz / f
-            try:
-                # follow_symlinks=False evita tentar resolver atalhos/symlinks quebrados
-                soma += origem_arquivo.stat(follow_symlinks=False).st_size
-                view.controles['text_area'].delete("1.0", "end")  # apaga tudo
-                view.controles['text_area'].insert("1.0",
-                                                   f"{formatar_tamanho(origem_arquivo.stat().st_size)} -> {origem_arquivo}")
-
-                destino_arquivo = destino / raiz.relative_to(origem) / f
-
-                disco = ""
-                if system == 'Windows':
-                    separar = view.controles['entrada_destino'].get().split("/")
-                    disco = separar[0]
-                elif system == 'Linux':
-                    disco = view.controles['entrada_destino'].get()
-
-                uso = shutil.disk_usage(Path(disco))
-                if origem_arquivo.stat().st_size > uso.free:
-                    pausar_tempo.set()
-                    messagebox.showwarning("Sem espaço em disco",
-                                           f"Espaço necessário {formatar_tamanho(origem_arquivo.stat().st_size - uso.free)}")
-                    pausar_tempo.clear()
-
+            for f in files:
                 if pausar:
-                    pausar_tempo.set()
-                    messagebox.showinfo("Pausado", "Clique em OK para continuar")
-                    pausar_tempo.clear()
+                    messagebox.showinfo("Pausa", "Tarefa pausada")
                     pausar = False
 
-                lbl_copiado_tamanho.after(0, lambda: view.controles['label_copiado_contagem'].config(text=formatar_tamanho(soma)))
+                origem_arquivo = raiz / f
+                try:
+                    # follow_symlinks=False evita tentar resolver atalhos/symlinks quebrados
+                    soma += origem_arquivo.stat(follow_symlinks=False).st_size
+                    view.controles['text_area'].delete("1.0", "end")  # apaga tudo
+                    view.controles['text_area'].insert("1.0",
+                                                       f"{formatar_tamanho(origem_arquivo.stat().st_size)} -> {origem_arquivo}")
+
+                    destino_arquivo = destino / raiz.relative_to(origem) / f
+
+                    disco = ""
+                    if system == 'Windows':
+                        separar = view.controles['entrada_destino'].get().split("/")
+                        disco = separar[0]
+                    elif system == 'Linux':
+                        disco = view.controles['entrada_destino'].get()
+
+                    uso = shutil.disk_usage(Path(disco))
+                    if origem_arquivo.stat().st_size > uso.free:
+                        pausar_tempo.set()
+                        messagebox.showwarning("Sem espaço em disco",
+                                               f"Espaço necessário {formatar_tamanho(origem_arquivo.stat().st_size - uso.free)}")
+                        pausar_tempo.clear()
+
+                    if pausar:
+                        pausar_tempo.set()
+                        messagebox.showinfo("Pausado", "Clique em OK para continuar")
+                        pausar_tempo.clear()
+                        pausar = False
+
+                    lbl_copiado_tamanho.after(0, lambda: view.controles['label_copiado_contagem'].config(text=formatar_tamanho(soma)))
 
 
-                copiar(origem_arquivo, destino_arquivo)
-            except Exception as e:
-                erro_encontrado = True
-                registrar_log(caminho_log, f"Erro ao copiar: {e} -> {origem_arquivo}")
-                continue
+                    copiar(origem_arquivo, destino_arquivo)
+                except Exception as e:
+                    erro_encontrado = True
+                    registrar_log(caminho_log, f"[ERRO] Copiando -> {e} -> {origem_arquivo}")
 
-            if liberar_total:
-                atualizar_barra(contador, tamanho_total, view.controles['progress_canvas'])
-            contador += 1
+                if liberar_total:
+                    atualizar_barra(soma, tamanho_total, view.controles['progress_canvas'])
+
+        except Exception as e:
+            erro_encontrado = True
+            registrar_log(caminho_log, f"[ERRO] Criando pasta -> {e}")
+
+    atualizar_barra(1, 1, view.controles['progress_canvas'])
 
 def copiar(origem_arquivo, destino_arquivo):
     # 1. Se o arquivo não existe no destino, copia direto
     if not destino_arquivo.is_file():
-        shutil.copy2(origem_arquivo, destino_arquivo)
+        shutil.copy2(origem_arquivo, destino_arquivo, follow_symlinks=False)
 
     # 2. Se ele existe, compara as datas de modificação
     elif origem_arquivo.stat().st_mtime > destino_arquivo.stat().st_mtime:
-        shutil.copy2(origem_arquivo, destino_arquivo)
+        shutil.copy2(origem_arquivo, destino_arquivo, follow_symlinks=False)
