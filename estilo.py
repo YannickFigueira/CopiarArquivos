@@ -8,7 +8,6 @@ NOME_PROGRAMA = "Cópia de Arquivos"
 
 # Pastas do programa
 home_dir = os.path.expanduser('~')
-log_dir = f"{home_dir}/log"
 programa_dir = f"{home_dir}/.copiar arquivos"
 notas = f"{home_dir}/.copiar arquivos/notas"
 log_files = Path(f"{home_dir}/.copiar arquivos/logs")
