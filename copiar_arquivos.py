@@ -71,6 +71,7 @@ def alterar_estado_controles(view, estado):
     view.controles['button_selecionar_origem'].config(state=estado)
     view.controles['button_selecionar_destino'].config(state=estado)
     view.controles['button_executar_copia'].config(state=estado)
+    view.controles['checkbox_origem'].config(state=estado)
 
 # --- Inicio do procedimento
 def iniciar_calculo_tamanho(view, pastas_origem, liberar):
