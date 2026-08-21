@@ -94,26 +94,27 @@ class CopiarArquivos:
         self.controles['label_tamanho_contagem'] = self.label_tamanho_contagem
 
         # Checkbox em baixo
-        self.checkbox_origem = tk.BooleanVar()
-        self.checkbox_origem.set(True)
-        self.checkbox = ttk.Checkbutton(self.checkbox_frame, text="Usar nome de origem", variable=self.checkbox_origem)
-        self.checkbox.grid(row=0, column=0, padx=padding_controls, pady=padding_controls, sticky="w")
-        self.controles['checkbox_origem'] = self.checkbox_origem
+        self.var_chk_origem = tk.BooleanVar()
+        self.var_chk_origem.set(True)
+        self.chk_nome_origem = ttk.Checkbutton(self.checkbox_frame, text="Usar nome de origem", variable=self.var_chk_origem)
+        self.chk_nome_origem.grid(row=0, column=0, padx=padding_controls, pady=padding_controls, sticky="w")
+        self.controles['var_chk_origem'] = self.var_chk_origem
+        self.controles['chk_nome_origem'] = self.chk_nome_origem
 
-        self.checkbox_mover = tk.BooleanVar()
-        self.checkbox = ttk.Checkbutton(self.checkbox_frame, text="Mover arquivos", variable=self.checkbox_mover)
-        self.checkbox.grid(row=1, column=0, padx=padding_controls, pady=padding_controls, sticky="w")
-        self.checkbox.config(state="disabled")
+        self.var_chk_mover = tk.BooleanVar()
+        self.chk_mover = ttk.Checkbutton(self.checkbox_frame, text="Mover arquivos", variable=self.var_chk_mover)
+        self.chk_mover.grid(row=1, column=0, padx=padding_controls, pady=padding_controls, sticky="w")
+        self.chk_mover.config(state="disabled")
 
-        self.checkbox_encerrar = tk.BooleanVar()
-        self.checkbox = ttk.Checkbutton(self.checkbox_frame, text="Encerrar programa", variable=self.checkbox_encerrar)
-        self.checkbox.grid(row=0, column=2, padx=padding_controls, pady=padding_controls, sticky="w")
-        self.controles['checkbox_encerrar'] = self.checkbox_encerrar
+        self.var_chk_encerrar = tk.BooleanVar()
+        self.chk_encerrar = ttk.Checkbutton(self.checkbox_frame, text="Encerrar programa", variable=self.var_chk_encerrar)
+        self.chk_encerrar.grid(row=0, column=2, padx=padding_controls, pady=padding_controls, sticky="w")
+        self.controles['var_chk_encerrar'] = self.var_chk_encerrar
 
-        self.checkbox_desligar = tk.BooleanVar()
-        self.checkbox = ttk.Checkbutton(self.checkbox_frame, text="Desligar sistema", variable=self.checkbox_desligar)
-        self.checkbox.grid(row=1, column=2, padx=padding_controls, pady=padding_controls, sticky="w")
-        self.controles['checkbox_desligar'] = self.checkbox_desligar
+        self.var_chk_desligar = tk.BooleanVar()
+        self.chk_desligar = ttk.Checkbutton(self.checkbox_frame, text="Desligar sistema", variable=self.var_chk_desligar)
+        self.chk_desligar.grid(row=1, column=2, padx=padding_controls, pady=padding_controls, sticky="w")
+        self.controles['var_chk_desligar'] = self.var_chk_desligar
 
         # Área de texto em baixo da checkbox
         self.text_area = tk.Text(self.bottom_frame, width=largura_texto, height=8)

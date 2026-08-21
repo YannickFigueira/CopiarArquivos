@@ -22,6 +22,7 @@ pausar = False
 liberar_total = False
 erro_encontrado = False
 total_arquivos = 0
+tamanho_total = 0
 contador = 1
 soma = 0
 
@@ -71,7 +72,7 @@ def alterar_estado_controles(view, estado):
     view.controles['button_selecionar_origem'].config(state=estado)
     view.controles['button_selecionar_destino'].config(state=estado)
     view.controles['button_executar_copia'].config(state=estado)
-    view.controles['checkbox_origem'].config(state=estado)
+    view.controles['chk_nome_origem'].config(state=estado)
 
 # --- Inicio do procedimento
 def iniciar_calculo_tamanho(view, pastas_origem, liberar):
@@ -83,7 +84,7 @@ def iniciar_calculo_tamanho(view, pastas_origem, liberar):
     t.start()
 
 def tamanho_pasta(view, pastas_origem, liberar):
-    global total_arquivos, liberar_total
+    global total_arquivos, liberar_total, tamanho_total
     lbl_tamanho_exibir = view.controles['label_tamanho_contagem']
     lbl_tamanho_exibir.after(0, lambda: view.controles['label_tamanho_contagem'].config(text="Atualizando..."))
     tamanho_total = 0
@@ -171,7 +172,7 @@ def copiando_pastas(pastas_origem, pastas_destino, view):
             caminho_origem = Path(origem)
             base_destino = Path(destino_base)
             # / une caminhos automaticamente independente do S.O.
-            if view.controles['checkbox_origem'].get():
+            if view.controles['var_chk_origem'].get():
                 pasta_destino_final = base_destino / caminho_origem.name
             else:
                 pasta_destino_final = base_destino
@@ -198,17 +199,17 @@ def copiando_pastas(pastas_origem, pastas_destino, view):
     if erro_encontrado:
         messagebox.showwarning("Erro", "Foi encontrado erros durante a cópia, vá em Arquivos -> Abrir log, para verificar")
 
-    if view.controles['checkbox_desligar'].get():
+    if view.controles['var_chk_desligar'].get():
         desligar_computador()
         view.controles['janela_principal'].destroy()
 
-    if view.controles['checkbox_encerrar'].get():
+    if view.controles['var_chk_encerrar'].get():
         view.controles['janela_principal'].destroy()
 
     registrar_log(caminho_log, "Processo finalizado.\n" + ("_" * 40))
 
 def copiando_arquivos(origem, destino, view, caminho_log):
-    global cancelar, pausar, contador, total_arquivos, soma, erro_encontrado
+    global cancelar, pausar, contador, tamanho_total, soma, erro_encontrado
     lbl_copiado_tamanho = view.controles['label_copiado_contagem']
 
     registrar_log(caminho_log, f"Copiando pasta {origem}")
@@ -269,7 +270,7 @@ def copiando_arquivos(origem, destino, view, caminho_log):
                 continue
 
             if liberar_total:
-                atualizar_barra(contador, total_arquivos, view.controles['progress_canvas'])
+                atualizar_barra(contador, tamanho_total, view.controles['progress_canvas'])
             contador += 1
 
 def copiar(origem_arquivo, destino_arquivo):
