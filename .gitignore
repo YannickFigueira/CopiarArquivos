@@ -1,0 +1,14 @@
+# Pastas da IDE (que você comentou antes)
+.idea/
+
+# Caches do Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Ambientes virtuais
+venv/
+.venv/
+env/

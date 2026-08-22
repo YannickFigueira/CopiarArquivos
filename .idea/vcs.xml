@@ -9,5 +9,8 @@
   </component>
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/Documents/CopiarArquivos" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/Documents/Envio_XML" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/Documents/NetBeansProjects/BackupAgendado3" vcs="Git" />
   </component>
 </project>
