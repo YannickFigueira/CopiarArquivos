@@ -91,3 +91,7 @@
 - Otimizado excução da cópia com a adição de um novo método
 - Modificado registro dos logs, deixado mais limpo
 - Adicionado nova janela e método para gerenciar os logs com arquivo_log.py
+- Modificado barra de progresso para mostrar porcentagem pelo tamanho dos arquivos
+
+### Fixed
+- Adicionado execução como threds para melhorar a performance no Windows ao copiar de Discos externos

@@ -3,10 +3,15 @@ import shutil
 import subprocess
 import threading
 import time
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from tkinter import messagebox
 
 from arquivo_log import registrar_log, gerar_arquivo_log, limpar_logs
+
+# Aumenta o buffer interno do Windows no shutil para 16MB (o padrão é 64KB)
+# Isso reduz as chamadas de sistema e evita que o cache esvazie, mitigando as pausas.
+shutil._WINDOWS_INTERNAL_BUFFER_SIZE = 16 * 1024 * 1024
 
 # Detecta sistema operacional
 system = platform.system()  # Retorna 'Linux', 'Windows', 'Darwin' (Mac)
@@ -166,26 +171,29 @@ def copiando_pastas(pastas_origem, pastas_destino, view):
 
     try:
         # zip alinha origem/destino; enumerate fornece o índice 'i'
-        for i, (origem, destino_base) in enumerate(zip(pastas_origem, pastas_destino)):
-            # Garante que "c:" vire "c:\" antes de virar Path
-            if origem.endswith(":"):
-                origem += "\\"
+        # Executa a cópia concorrente
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            for i, (origem, destino_base) in enumerate(zip(pastas_origem, pastas_destino)):
+                # Garante que "c:" vire "c:\" antes de virar Path
+                if origem.endswith(":"):
+                    origem += "\\"
 
-            # Garante que "c:" vire "c:\" antes de virar Path
-            if destino_base.endswith(":"):
-                destino_base += "\\"
+                # Garante que "c:" vire "c:\" antes de virar Path
+                if destino_base.endswith(":"):
+                    destino_base += "\\"
 
-            caminho_origem = Path(origem)
-            base_destino = Path(destino_base)
-            # / une caminhos automaticamente independente do S.O.
-            if view.controles['var_chk_origem'].get():
-                pasta_destino_final = base_destino / caminho_origem.name
-            else:
-                pasta_destino_final = base_destino
-            print(f"Pasta destino final: {pasta_destino_final}")
+                caminho_origem = Path(origem)
+                base_destino = Path(destino_base)
+                # / une caminhos automaticamente independente do S.O.
+                if view.controles['var_chk_origem'].get():
+                    pasta_destino_final = base_destino / caminho_origem.name
+                else:
+                    pasta_destino_final = base_destino
+                print(f"Pasta destino final: {pasta_destino_final}")
 
-            copiando_arquivos(caminho_origem, pasta_destino_final, view, caminho_log)
+                #copiando_arquivos(caminho_origem, pasta_destino_final, view, caminho_log)
 
+                executor.submit(copiando_arquivos, caminho_origem, pasta_destino_final, view, caminho_log)
     finally:
         # sinaliza para parar a thread de tempo e aguarda encerrar
         parar_tempo.set()
