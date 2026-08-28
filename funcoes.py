@@ -1,5 +1,3 @@
-import logging
-import os
 import platform
 import tkinter as tk
 import webbrowser
@@ -12,24 +10,6 @@ from arquivo_log import ler_pasta_log, abrir_logs
 
 # Detecta sistema operacional
 system = platform.system()  # Retorna 'Linux', 'Windows', 'Darwin' (Mac)
-
-# --- Registro de erros ---
-arquivo_erro = estilo.ARQUIVO_ERRO
-
-if system == 'Linux':
-    logging.basicConfig(
-        filename=f"{estilo.home_dir}/log/{arquivo_erro}",        # nome do arquivo
-        level=logging.ERROR,         # nível de log
-        format="%(asctime)s - %(levelname)s - %(message)s")
-
-elif system == 'Windows':
-    if not os.path.exists(f"c:/temp"):
-        os.mkdir(f"c:/temp")
-
-    logging.basicConfig(
-        filename=f"c:/temp/{arquivo_erro}",  # nome do arquivo
-        level=logging.ERROR,  # nível de log
-        format="%(asctime)s - %(levelname)s - %(message)s")
 
 # --- Variáveis globais ---
 cancelar = False
