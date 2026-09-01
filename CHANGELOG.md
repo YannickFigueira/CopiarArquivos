@@ -95,3 +95,7 @@
 
 ### Fixed
 - Adicionado execução como threds para melhorar a performance no Windows ao copiar de Discos externos
+
+## [4.3.13] - 2026-08-31
+### Changes
+- Modificado visual da janela para um mais moderno com suporte a modo dark e ligth

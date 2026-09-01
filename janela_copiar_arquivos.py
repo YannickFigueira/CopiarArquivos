@@ -6,6 +6,7 @@ import estilo
 ## variaveis da janela
 padding_frame = 2
 padding_controls = 5
+largura_texto_entry = 350
 largura_texto = 48
 
 class CopiarArquivos:
@@ -27,6 +28,7 @@ class CopiarArquivos:
         # CTkCTkFrame para alinhar label e campo de texto lado a lado
         self.top_frame = ctk.CTkFrame(self.janela_principal)
         self.top_frame.pack(fill="x", padx=padding_frame, pady=padding_frame)
+        self.top_frame.grid_columnconfigure(1, weight=1)
         self.top_frame.grid_columnconfigure(2, weight=1)
 
         self.top_button_frame = ctk.CTkFrame(self.janela_principal)
@@ -49,27 +51,28 @@ class CopiarArquivos:
         self.bottom_frame.pack(fill="x")
 
         ### Fim dos frames ###
+        botao_sel = 30
 
         self.label_origem = ctk.CTkLabel(self.top_frame, text="Origem:")
         self.label_origem.grid(row=0, column=0, padx=padding_controls, pady=padding_controls)
 
-        self.entrada_origem = ctk.CTkEntry(self.top_frame, width=largura_texto)
-        self.entrada_origem.grid(row=0, column=1, padx=padding_controls, pady=padding_controls)
+        self.entrada_origem = ctk.CTkEntry(self.top_frame, width=largura_texto_entry)
+        self.entrada_origem.grid(row=0, column=1, padx=padding_controls, pady=padding_controls, sticky="ew")
         self.controles['entrada_origem'] = self.entrada_origem
 
-        self.button_selecionar_origem = ctk.CTkButton(self.top_frame, text="...")
-        self.button_selecionar_origem.grid(row=0, column=2, padx=padding_controls, pady=padding_controls, sticky="we")
+        self.button_selecionar_origem = ctk.CTkButton(self.top_frame, text="...", width=botao_sel)
+        self.button_selecionar_origem.grid(row=0, column=2, padx=padding_controls, pady=padding_controls, sticky="ew")
         self.controles['button_selecionar_origem'] = self.button_selecionar_origem
 
         self.label_destino = ctk.CTkLabel(self.top_frame, text="Destino:")
         self.label_destino.grid(row=1, column=0, padx=padding_controls, pady=padding_controls)
 
-        self.entrada_destino = ctk.CTkEntry(self.top_frame, width=largura_texto)
-        self.entrada_destino.grid(row=1, column=1, padx=padding_controls, pady=padding_controls)
+        self.entrada_destino = ctk.CTkEntry(self.top_frame, width=largura_texto_entry)
+        self.entrada_destino.grid(row=1, column=1, padx=padding_controls, pady=padding_controls, sticky="ew")
         self.controles['entrada_destino'] = self.entrada_destino
 
-        self.button_selecionar_destino = ctk.CTkButton(self.top_frame, text="...")
-        self.button_selecionar_destino.grid(row=1, column=2, padx=padding_controls, pady=padding_controls, sticky="we")
+        self.button_selecionar_destino = ctk.CTkButton(self.top_frame, text="...", width=botao_sel)
+        self.button_selecionar_destino.grid(row=1, column=2, padx=padding_controls, pady=padding_controls, sticky="ew")
         self.controles['button_selecionar_destino'] = self.button_selecionar_destino
 
         self.button_executar_copia = ctk.CTkButton(self.top_button_frame, text="Executar Cópia")
