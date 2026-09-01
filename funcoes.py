@@ -60,11 +60,11 @@ class Funcoes:
         # --- Controles da Janela Principal ---
         self.view.controles['janela_principal'].protocol("WM_DELETE_WINDOW",
                                                          lambda: self.fechar_janelas('janela_principal'))
-        self.view.controles['button_selecionar_origem'].config(command=lambda: self.selecionar_origem())
-        self.view.controles['button_selecionar_destino'].config(command=lambda: self.selecionar_destino())
-        self.view.controles['button_executar_copia'].config(command=lambda: self.executar_acao())
-        self.view.controles['button_cancelar'].config(command=lambda: copiar_arquivos.cancelar_copia())
-        self.view.controles['button_pausar'].config(command=lambda: copiar_arquivos.pausar_copia())
+        self.view.controles['button_selecionar_origem'].configure(command=lambda: self.selecionar_origem())
+        self.view.controles['button_selecionar_destino'].configure(command=lambda: self.selecionar_destino())
+        self.view.controles['button_executar_copia'].configure(command=lambda: self.executar_acao())
+        self.view.controles['button_cancelar'].configure(command=lambda: copiar_arquivos.cancelar_copia())
+        self.view.controles['button_pausar'].configure(command=lambda: copiar_arquivos.pausar_copia())
 
         self.clipboard(self.view.controles['entrada_origem'])
         self.clipboard(self.view.controles['entrada_destino'])
@@ -78,10 +78,10 @@ class Funcoes:
         self.view.controles['janela_logs'].protocol("WM_DELETE_WINDOW",
                                                          lambda: self.fechar_janelas('janela_logs'))
 
-        self.view.controles['lbl_logs'].config(text=texto_log)
-        self.view.controles['cmb_selecao'].config(values=arquivos_log)
+        self.view.controles['lbl_logs'].configure(text=texto_log)
+        self.view.controles['cmb_selecao'].configure(values=arquivos_log)
         self.view.controles['cmb_selecao'].current(0)
-        self.view.controles['btn_abrir_logs'].config(command=lambda: abrir_logs(self.view))
+        self.view.controles['btn_abrir_logs'].configure(command=lambda: abrir_logs(self.view))
 
     # --- Inicialização das janelas ---
     def abrir_janela_logs(self):
@@ -124,8 +124,8 @@ class Funcoes:
             if Path(texto_origem).is_dir():
                 if not destino == "":
                     if Path(verificar).is_dir():
-                        self.view.controles['button_cancelar'].config(state="normal")
-                        self.view.controles['button_pausar'].config(state="normal")
+                        self.view.controles['button_cancelar'].configure(state="normal")
+                        self.view.controles['button_pausar'].configure(state="normal")
                         origem_pasta = [texto_origem]
                         destino_pasta = [destino]
                         copiar_arquivos.iniciar_copiar_arquivos(self.view, origem_pasta, destino_pasta)

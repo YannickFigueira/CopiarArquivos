@@ -1,5 +1,5 @@
 import argparse
-import tkinter as tk
+import customtkinter as ctk
 
 import estilo
 from funcoes import Funcoes
@@ -13,7 +13,7 @@ args = parser.parse_args()
 # --- Inicialização da Interface ---
 if __name__ == "__main__":
     # 1. Inicia a janela base do Tkinter
-    root = tk.Tk()
+    root = ctk.CTk()
 
     # 2. Cria a parte visual (passando o root e a versão)
     visual = CopiarArquivos(root)
