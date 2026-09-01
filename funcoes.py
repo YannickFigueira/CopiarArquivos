@@ -82,7 +82,7 @@ class Funcoes:
         # 1. Atualiza as opções do ComboBox
         self.view.controles['cmb_selecao'].configure(values=arquivos_log)
 
-        # 2. Define o valor selecionado usando o método .set()
+        # 2. Define o valor selecionado usando o funcao .set()
         if arquivos_log:
             self.view.controles['cmb_selecao'].set(arquivos_log[0])
         self.view.controles['btn_abrir_logs'].configure(command=lambda: abrir_logs(self.view))
