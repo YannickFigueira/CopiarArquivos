@@ -70,6 +70,9 @@ class CopiarArquivos:
         # --- BOTTOM FRAME (Progresso / Ações finais) ---
         self.bottom_frame = ctk.CTkFrame(self.container_interno, fg_color="transparent")
         self.bottom_frame.pack(fill="x", padx=padding_frame, pady=(0, padding_frame))
+        # 3. IMPORTANTE: Configurar as colunas do bottom_frame para expandirem
+        for col in range(4):
+            self.bottom_frame.grid_columnconfigure(col, weight=1)
 
         ### Fim dos frames ###
         botao_sel = 30
@@ -168,7 +171,7 @@ class CopiarArquivos:
         self.controles['chk_desligar'] = self.chk_desligar
 
         # Área de texto em baixo da checkbox
-        self.text_area = tk.Text(self.bottom_frame, width=largura_texto, height=8)
+        self.text_area = ctk.CTkTextbox(self.bottom_frame, height=150)
         self.text_area.grid(row=0, column=0, columnspan=4, padx=padding_controls, pady=padding_controls, sticky="we")
         self.controles['text_area'] = self.text_area
 
