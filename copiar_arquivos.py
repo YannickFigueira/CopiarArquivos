@@ -60,16 +60,6 @@ def cancelar_copia():
         cancelar = True
 
 ### Atualiza a barra de progresso ###
-def atualizar_barra_old(valor, total, progress_canvas):
-    progress_canvas.delete("all")
-    largura = int((valor / total) * progress_canvas.winfo_width())
-    # desenha a barra preenchida
-    progress_canvas.create_rectangle(0, 0, largura, 25, fill="green")
-    # escreve a porcentagem dentro da barra
-    porcentagem = (valor / total) * 100
-    x = progress_canvas.winfo_width() // 2
-    progress_canvas.create_text(x, 12, text=f"{porcentagem:.3f}%", fill="black", font=("Arial", 10, "bold"))
-
 def atualizar_barra(view, valor, total):
     porcentagem = (valor / total)
     view.controles['progress_bar'].set(porcentagem)
