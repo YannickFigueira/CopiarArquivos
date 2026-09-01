@@ -79,8 +79,12 @@ class Funcoes:
                                                          lambda: self.fechar_janelas('janela_logs'))
 
         self.view.controles['lbl_logs'].configure(text=texto_log)
+        # 1. Atualiza as opções do ComboBox
         self.view.controles['cmb_selecao'].configure(values=arquivos_log)
-        self.view.controles['cmb_selecao'].current(0)
+
+        # 2. Define o valor selecionado usando o método .set()
+        if arquivos_log:
+            self.view.controles['cmb_selecao'].set(arquivos_log[0])
         self.view.controles['btn_abrir_logs'].configure(command=lambda: abrir_logs(self.view))
 
     # --- Inicialização das janelas ---

@@ -36,5 +36,5 @@ PADY_COMPONENTE = 5
 ARQUIVO_ERRO = "copiar_arquivos.log"
 
 # Estilo
-FONTE_VAZIA=("", 11, "normal")
+FONTE_VAZIA=("", 14, "normal")
 FONTE_ARIAL=("Arial", 11, "normal")

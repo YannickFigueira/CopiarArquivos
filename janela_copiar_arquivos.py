@@ -25,30 +25,51 @@ class CopiarArquivos:
         # --- Controles ---
         self.controles['janela_principal'] = self.janela_principal
 
-        # CTkCTkFrame para alinhar label e campo de texto lado a lado
-        self.top_frame = ctk.CTkFrame(self.janela_principal)
+        # 1. CONTAINER PRINCIPAL (Envolve toda a interface)
+        self.container_interno = ctk.CTkFrame(
+            self.janela_principal,
+            corner_radius=15,
+            border_width=0
+        )
+        self.container_interno.pack(fill="both", expand=True, padx=5, pady=(0, 5))
+
+        # Retângulo superior que "quadra" o topo do container_interno
+        self.top_cover = ctk.CTkFrame(
+            self.container_interno,
+            corner_radius=0,
+            fg_color=self.container_interno.cget("fg_color"),
+            height=15
+        )
+        self.top_cover.place(relx=0, rely=0, relwidth=1, anchor="nw")
+
+        # 2. SUB-FRAMES (Todos empacotados DENTRO do self.container_interno)
+
+        # --- TOP FRAME ---
+        self.top_frame = ctk.CTkFrame(self.container_interno, fg_color="transparent")
         self.top_frame.pack(fill="x", padx=padding_frame, pady=padding_frame)
         self.top_frame.grid_columnconfigure(1, weight=1)
         self.top_frame.grid_columnconfigure(2, weight=1)
 
-        self.top_button_frame = ctk.CTkFrame(self.janela_principal)
-        self.top_button_frame.pack(fill="x")
-        # Configura as colunas 0, 1 e 2 para expandirem igualmente (weight=1)
+        # --- TOP BUTTON FRAME ---
+        self.top_button_frame = ctk.CTkFrame(self.container_interno, fg_color="transparent")
+        self.top_button_frame.pack(fill="x", padx=padding_frame, pady=(0, padding_frame))
         self.top_button_frame.grid_columnconfigure(0, weight=1)
         self.top_button_frame.grid_columnconfigure(1, weight=1)
         self.top_button_frame.grid_columnconfigure(2, weight=1)
 
-        self.middle_frame = ctk.CTkFrame(self.janela_principal)
-        self.middle_frame.pack(fill="x")
+        # --- MIDDLE FRAME ---
+        self.middle_frame = ctk.CTkFrame(self.container_interno, fg_color="transparent")
+        self.middle_frame.pack(fill="x", padx=padding_frame, pady=(0, padding_frame))
 
-        self.checkbox_frame = ctk.CTkFrame(self.janela_principal)
-        self.checkbox_frame.pack(fill="x")
-        # Expandir colunas igualmente
+        # --- CHECKBOX FRAME ---
+        self.checkbox_frame = ctk.CTkFrame(self.container_interno, fg_color="transparent")
+        self.checkbox_frame.pack(fill="x", padx=padding_frame, pady=(0, padding_frame))
         self.checkbox_frame.grid_columnconfigure(0, weight=1)
         self.checkbox_frame.grid_columnconfigure(1, weight=1)
 
-        self.bottom_frame = ctk.CTkFrame(self.janela_principal)
-        self.bottom_frame.pack(fill="x")
+        # --- BOTTOM FRAME (Progresso / Ações finais) ---
+        self.bottom_frame = ctk.CTkFrame(self.container_interno, fg_color="transparent")
+        self.bottom_frame.pack(fill="x", padx=padding_frame, pady=(0, padding_frame))
 
         ### Fim dos frames ###
         botao_sel = 30
