@@ -6,8 +6,8 @@ import estilo
 ## variaveis da janela
 padding_frame = 2
 padding_controls = 5
-largura_texto_entry = 350
-largura_texto = 48
+largura_texto_entry = 300
+largura_texto = 55
 
 class CopiarArquivos:
     def __init__(self, janela_principal):
@@ -154,10 +154,33 @@ class CopiarArquivos:
         self.label_arquivo_atual = ctk.CTkLabel(self.bottom_frame, text="Progresso total:")
         self.label_arquivo_atual.grid(row=1, column=0, padx=padding_controls, pady=padding_controls, sticky="w")
 
-        self.progress_canvas = tk.Canvas(self.bottom_frame, height=25, bg="white", highlightthickness=1,
-                                    highlightbackground="black")
-        self.progress_canvas.grid(row=1, column=1, columnspan=3, padx=padding_controls, pady=padding_controls, sticky="e")
-        self.controles['progress_canvas'] = self.progress_canvas
+        # 1. Cria a barra de progresso normalmente
+        self.progress_bar = ctk.CTkProgressBar(self.bottom_frame, height=26)
+        self.progress_bar.grid(row=1, column=1, columnspan=3, padx=padding_controls, pady=padding_controls, sticky="ew")
+        self.progress_bar.set(0)
+
+        # 2. Cria o texto DIRETAMENTE dentro do Canvas interno do CTkProgressBar
+        # Isso garante transparência real sem o retângulo cinza recortando a barra
+        self.texto_progresso_id = self.progress_bar._canvas.create_text(
+            0, 0,
+            text="0.000%",
+            fill="white",
+            font=("Helvetica", 11, "bold")
+        )
+
+        # Function interna para manter o texto sempre centralizado quando a barra redimensionar
+        def _centralizar_texto_progresso(event):
+            largura = event.width
+            altura = event.height
+            self.progress_bar._canvas.coords(self.texto_progresso_id, largura / 2, altura / 2)
+            # Garante que o texto fique sempre acima da camada do progresso
+            self.progress_bar._canvas.tag_raise(self.texto_progresso_id)
+
+        self.progress_bar._canvas.bind("<Configure>", _centralizar_texto_progresso)
+
+        # Registra as referências
+        self.controles['progress_bar'] = self.progress_bar
+        self.controles['lbl_porcentagem'] = self.texto_progresso_id  # Guarda o ID do texto
 
         self.label_copiado = ctk.CTkLabel(self.bottom_frame, text="Copiado:")
         self.label_copiado.grid(row=2, column=0, padx=padding_controls, pady=padding_controls, sticky="w")

@@ -43,7 +43,7 @@ def atualiza_tempo(inicio, label):
 
         # agenda a atualização do label na thread principal do Tkinter
         def _set_label():
-            label.config(text=f"{int(horas):02}:{int(minutos):02}:{segundos:04.1f}")
+            label.configure(text=f"{int(horas):02}:{int(minutos):02}:{segundos:04.1f}")
 
         label.after(0, _set_label)
         # frequência de atualização (ajuste conforme desejar)
@@ -60,7 +60,7 @@ def cancelar_copia():
         cancelar = True
 
 ### Atualiza a barra de progresso ###
-def atualizar_barra(valor, total, progress_canvas):
+def atualizar_barra_old(valor, total, progress_canvas):
     progress_canvas.delete("all")
     largura = int((valor / total) * progress_canvas.winfo_width())
     # desenha a barra preenchida
@@ -70,13 +70,22 @@ def atualizar_barra(valor, total, progress_canvas):
     x = progress_canvas.winfo_width() // 2
     progress_canvas.create_text(x, 12, text=f"{porcentagem:.3f}%", fill="black", font=("Arial", 10, "bold"))
 
+def atualizar_barra(view, valor, total):
+    porcentagem = (valor / total)
+    view.controles['progress_bar'].set(porcentagem)
+    #self.view.controles['lbl_porcentagem'].configure(text=f"{(porcentagem * 100):.3f}%")
+    # 2. Atualiza o texto do canvas
+    texto_id = view.controles['lbl_porcentagem']
+    view.controles['progress_bar']._canvas.itemconfig(texto_id, text=f"{(porcentagem * 100):.3f}%")
+
+
 def alterar_estado_controles(view, estado):
-    view.controles['entrada_origem'].config(state=estado)
-    view.controles['entrada_destino'].config(state=estado)
-    view.controles['button_selecionar_origem'].config(state=estado)
-    view.controles['button_selecionar_destino'].config(state=estado)
-    view.controles['button_executar_copia'].config(state=estado)
-    view.controles['chk_nome_origem'].config(state=estado)
+    view.controles['entrada_origem'].configure(state=estado)
+    view.controles['entrada_destino'].configure(state=estado)
+    view.controles['button_selecionar_origem'].configure(state=estado)
+    view.controles['button_selecionar_destino'].configure(state=estado)
+    view.controles['button_executar_copia'].configure(state=estado)
+    view.controles['chk_nome_origem'].configure(state=estado)
 
 # --- Inicio do procedimento
 def iniciar_calculo_tamanho(view, pastas_origem, liberar):
@@ -90,7 +99,7 @@ def iniciar_calculo_tamanho(view, pastas_origem, liberar):
 def tamanho_pasta(view, pastas_origem, liberar):
     global total_arquivos, liberar_total, tamanho_total
     lbl_tamanho_exibir = view.controles['label_tamanho_contagem']
-    lbl_tamanho_exibir.after(0, lambda: view.controles['label_tamanho_contagem'].config(text="Atualizando..."))
+    lbl_tamanho_exibir.after(0, lambda: view.controles['label_tamanho_contagem'].configure(text="Atualizando..."))
     tamanho_total = 0
     total_arquivos = 0
 
@@ -103,7 +112,7 @@ def tamanho_pasta(view, pastas_origem, liberar):
                 total_arquivos += 1
                 tamanho_total += item.stat(follow_symlinks=False).st_size
 
-    lbl_tamanho_exibir.after(0, lambda: view.controles['label_tamanho_contagem'].config(text=formatar_tamanho(tamanho_total)))
+    lbl_tamanho_exibir.after(0, lambda: view.controles['label_tamanho_contagem'].configure(text=formatar_tamanho(tamanho_total)))
 
     match liberar:
         case "execucao":
@@ -204,8 +213,8 @@ def copiando_pastas(pastas_origem, pastas_destino, view):
         view.controles['text_area'].insert("1.0", "Execução cancelada!")
 
     alterar_estado_controles(view, "normal")
-    view.controles['button_cancelar'].config(state="disabled")
-    view.controles['button_pausar'].config(state="disabled")
+    view.controles['button_cancelar'].configure(state="disabled")
+    view.controles['button_pausar'].configure(state="disabled")
 
     if erro_encontrado:
         messagebox.showwarning("Erro", "Foi encontrado erros durante a cópia, vá em Arquivos -> Abrir log, para verificar")
@@ -272,7 +281,7 @@ def copiando_arquivos(origem, destino, view, caminho_log):
                             pausar_tempo.clear()
                             pausar = False
 
-                        lbl_copiado_tamanho.after(0, lambda: view.controles['label_copiado_contagem'].config(text=formatar_tamanho(soma)))
+                        lbl_copiado_tamanho.after(0, lambda: view.controles['label_copiado_contagem'].configure(text=formatar_tamanho(soma)))
 
                         executor.submit(copiar, origem_arquivo, destino_arquivo)
                     except Exception as e:
@@ -280,13 +289,13 @@ def copiando_arquivos(origem, destino, view, caminho_log):
                         registrar_log(caminho_log, f"[ERRO] Copiando -> {e} -> Origem {origem_arquivo} -> Destino {destino_arquivo}")
 
                     if liberar_total:
-                        atualizar_barra(soma, tamanho_total, view.controles['progress_canvas'])
+                        atualizar_barra(view, soma, tamanho_total)
 
         except Exception as e:
             erro_encontrado = True
             registrar_log(caminho_log, f"[ERRO] Criando pasta -> {e}")
 
-    atualizar_barra(1, 1, view.controles['progress_canvas'])
+    atualizar_barra(view, 1, 1)
 
 def copiar(origem_arquivo, destino_arquivo):
     # 1. Se o arquivo não existe no destino, copia direto

@@ -2,7 +2,7 @@
 import os
 from pathlib import Path
 
-VERSION = "v4.2.13"
+VERSION = "v4.3.13"
 REPO = "CopiarArquivos"
 NOME_PROGRAMA = "Cópia de Arquivos"
 
