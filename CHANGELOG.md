@@ -98,4 +98,8 @@
 
 ## [4.3.13] - 2026-08-31
 ### Changes
-- Modificado visual da janela para um mais moderno com suporte a modo dark e ligth
+- Modificado visual da janela para um mais moderno com suporte a modo dark e light
+
+## [4.3.14] - 2026-09-02
+### Fixed
+- Melhorado velocidade de cópia
