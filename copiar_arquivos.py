@@ -218,37 +218,51 @@ def copiando_pastas(pastas_origem, pastas_destino, view):
 
     registrar_log(caminho_log, "[INFO] Processo finalizado.\n" + ("_" * 40))
 
+# Lock para evitar Race Condition em variáveis compartilhadas
+lock_soma = threading.Lock()
+
 def copiando_arquivos(origem, destino, view, caminho_log):
     global cancelar, pausar, tamanho_total, soma, erro_encontrado
+
     lbl_copiado_tamanho = view.controles['label_copiado_contagem']
     registrar_log(caminho_log, f"[INFO] Copiando pasta {origem}")
-    for raiz, dirs, files in origem.walk(origem, on_error=lambda a: None):
-        pasta_final = destino / raiz.relative_to(origem)
-        try:
-            if raiz.is_dir():
-                pasta_final.mkdir(parents=True, exist_ok=True)
+    # Crie o pool DE FORA de todos os loops de arquivos/pastas
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        for raiz, dirs, files in origem.walk(origem, on_error=lambda a: None):
+            pasta_final = destino / raiz.relative_to(origem)
+            try:
+                if raiz.is_dir():
+                    pasta_final.mkdir(parents=True, exist_ok=True)
 
-            # Executa a cópia concorrente
-            with ThreadPoolExecutor(max_workers=2) as executor:
                 for f in files:
                     if cancelar:
-                        view.controles['text_area'].delete(1.0, "end")  # apaga tudo
-                        view.controles['progress_canvas'].delete("all")
+                        view.controles['janela_principal'].after(0, lambda: view.controles['text_area'].delete("1.0", "end"))
+                        view.controles['janela_principal'].after(0, lambda: view.controles['progress_canvas'].delete("all"))
                         cancelar = False
-                        break
+                        return
 
                     if pausar:
-                        messagebox.showinfo("Pausa", "Tarefa pausada")
+                        # Tratar sinalização de pausa antes de enviar novas tarefas
+                        view.controles['janela_principal'].after(0, lambda: messagebox.showinfo("Pausa", "Tarefa pausada"))
                         pausar = False
 
                     origem_arquivo = raiz / f
-                    destino_arquivo = ""
                     try:
                         # follow_symlinks=False evita tentar resolver atalhos/symlinks quebrados
-                        soma += origem_arquivo.stat(follow_symlinks=False).st_size
-                        view.controles['text_area'].delete("1.0", "end")  # apaga tudo
-                        view.controles['text_area'].insert("1.0",
-                                                           f"{formatar_tamanho(origem_arquivo.stat().st_size)} -> {origem_arquivo}")
+                        tamanho_arq = origem_arquivo.stat(follow_symlinks=False).st_size
+
+                        # Sincronização segura da variável global 'soma'
+                        with lock_soma:
+                            soma += tamanho_arq
+                            soma_atual = soma
+                        # Atualizações do Tkinter enviadas de forma assíncrona (thread-safe)
+                        texto_status = f"{formatar_tamanho(tamanho_arq)} -> {origem_arquivo}"
+                        view.controles['janela_principal'].after(0, lambda t=texto_status: (
+                            view.controles['text_area'].delete("1.0", "end"),
+                            view.controles['text_area'].insert("1.0", t)
+                        ))
+
+                        view.controles['janela_principal'].after(0, lambda s=soma_atual: lbl_copiado_tamanho.configure(text=formatar_tamanho(s)))
 
                         disco = ""
                         if system == 'Windows':
@@ -256,7 +270,7 @@ def copiando_arquivos(origem, destino, view, caminho_log):
                             disco = separar[0]
                         elif system == 'Linux':
                             disco = view.controles['entrada_destino'].get()
-                        destino_arquivo = destino / raiz.relative_to(origem) / f
+                        destino_arquivo = pasta_final / f
 
                         uso = shutil.disk_usage(Path(disco))
                         if origem_arquivo.stat().st_size > uso.free:
@@ -271,27 +285,31 @@ def copiando_arquivos(origem, destino, view, caminho_log):
                             pausar_tempo.clear()
                             pausar = False
 
-                        lbl_copiado_tamanho.after(0, lambda: view.controles['label_copiado_contagem'].configure(text=formatar_tamanho(soma)))
+                        view.controles['janela_principal'].after(0, lambda s=soma_atual: lbl_copiado_tamanho.configure(text=formatar_tamanho(s)))
 
-                        executor.submit(copiar, origem_arquivo, destino_arquivo)
+                        executor.submit(copiar, origem_arquivo, destino_arquivo, caminho_log)
                     except Exception as e:
                         erro_encontrado = True
-                        registrar_log(caminho_log, f"[ERRO] Copiando -> {e} -> Origem {origem_arquivo} -> Destino {destino_arquivo}")
+                        registrar_log(caminho_log, f"[ERRO] Lendo arquivo -> {e} -> Origem {origem_arquivo}")
 
                     if liberar_total:
-                        atualizar_barra(view, soma, tamanho_total)
+                        view.controles['janela_principal'].after(0, lambda s=soma_atual: atualizar_barra(view, s, tamanho_total))
 
-        except Exception as e:
-            erro_encontrado = True
-            registrar_log(caminho_log, f"[ERRO] Criando pasta -> {e}")
+            except Exception as e:
+                erro_encontrado = True
+                registrar_log(caminho_log, f"[ERRO] Criando pasta -> {e}")
 
     atualizar_barra(view, 1, 1)
 
-def copiar(origem_arquivo, destino_arquivo):
-    # 1. Se o arquivo não existe no destino, copia direto
-    if not destino_arquivo.is_file():
-        shutil.copy2(origem_arquivo, destino_arquivo, follow_symlinks=False)
-
-    # 2. Se ele existe, compara as datas de modificação
-    elif origem_arquivo.stat().st_mtime > destino_arquivo.stat().st_mtime:
-        shutil.copy2(origem_arquivo, destino_arquivo, follow_symlinks=False)
+def copiar(origem_arquivo, destino_arquivo, caminho_log):
+    global erro_encontrado
+    try:
+        if not destino_arquivo.is_file() or (origem_arquivo.stat().st_mtime > destino_arquivo.stat().st_mtime):
+            shutil.copy2(origem_arquivo, destino_arquivo, follow_symlinks=False)
+    except shutil.SameFileError:
+        # Arquivos são idênticos/mesmo caminho (symlinks).
+        # Ignora silenciosamente para não poluir o log.
+        pass
+    except Exception as e:
+        erro_encontrado = True
+        registrar_log(caminho_log, f"[ERRO] Copiando -> {e} -> Origem {origem_arquivo} -> Destino {destino_arquivo}")
