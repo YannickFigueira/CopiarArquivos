@@ -251,18 +251,12 @@ def copiando_arquivos(origem, destino, view, caminho_log):
                         # follow_symlinks=False evita tentar resolver atalhos/symlinks quebrados
                         tamanho_arq = origem_arquivo.stat(follow_symlinks=False).st_size
 
-                        # Sincronização segura da variável global 'soma'
-                        with lock_soma:
-                            soma += tamanho_arq
-                            soma_atual = soma
                         # Atualizações do Tkinter enviadas de forma assíncrona (thread-safe)
                         texto_status = f"{formatar_tamanho(tamanho_arq)} -> {origem_arquivo}"
                         view.controles['janela_principal'].after(0, lambda t=texto_status: (
                             view.controles['text_area'].delete("1.0", "end"),
                             view.controles['text_area'].insert("1.0", t)
                         ))
-
-                        view.controles['janela_principal'].after(0, lambda s=soma_atual: lbl_copiado_tamanho.configure(text=formatar_tamanho(s)))
 
                         disco = ""
                         if system == 'Windows':
@@ -285,15 +279,10 @@ def copiando_arquivos(origem, destino, view, caminho_log):
                             pausar_tempo.clear()
                             pausar = False
 
-                        view.controles['janela_principal'].after(0, lambda s=soma_atual: lbl_copiado_tamanho.configure(text=formatar_tamanho(s)))
-
-                        executor.submit(copiar, origem_arquivo, destino_arquivo, caminho_log)
+                        executor.submit(copiar, origem_arquivo, destino_arquivo, tamanho_arq, caminho_log, view, view.controles['janela_principal'])
                     except Exception as e:
                         erro_encontrado = True
                         registrar_log(caminho_log, f"[ERRO] Lendo arquivo -> {e} -> Origem {origem_arquivo}")
-
-                    if liberar_total:
-                        view.controles['janela_principal'].after(0, lambda s=soma_atual: atualizar_barra(view, s, tamanho_total))
 
             except Exception as e:
                 erro_encontrado = True
@@ -301,11 +290,22 @@ def copiando_arquivos(origem, destino, view, caminho_log):
 
     atualizar_barra(view, 1, 1)
 
-def copiar(origem_arquivo, destino_arquivo, caminho_log):
-    global erro_encontrado
+def copiar(origem_arquivo, destino_arquivo, tamanho_arq, caminho_log, view, janela):
+    global erro_encontrado, soma
     try:
         if not destino_arquivo.is_file() or (origem_arquivo.stat().st_mtime > destino_arquivo.stat().st_mtime):
             shutil.copy2(origem_arquivo, destino_arquivo, follow_symlinks=False)
+
+        # 2. SÓ AGORA atualiza o progresso real!
+        with lock_soma:
+            soma += tamanho_arq
+            soma_atual = soma
+
+        # Atualiza a interface gráfica com o progresso REAL concluído
+        janela.after(0, lambda s=soma_atual: (
+            view.controles['label_copiado_contagem'].configure(text=formatar_tamanho(s)),
+            atualizar_barra(view, s, tamanho_total) if liberar_total else None
+        ))
     except shutil.SameFileError:
         # Arquivos são idênticos/mesmo caminho (symlinks).
         # Ignora silenciosamente para não poluir o log.
