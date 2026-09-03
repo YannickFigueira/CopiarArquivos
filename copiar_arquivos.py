@@ -248,16 +248,6 @@ def copiando_arquivos(origem, destino, view, caminho_log):
 
                     origem_arquivo = raiz / f
                     try:
-                        # follow_symlinks=False evita tentar resolver atalhos/symlinks quebrados
-                        tamanho_arq = origem_arquivo.stat(follow_symlinks=False).st_size
-
-                        # Atualizações do Tkinter enviadas de forma assíncrona (thread-safe)
-                        texto_status = f"{formatar_tamanho(tamanho_arq)} -> {origem_arquivo}"
-                        view.controles['janela_principal'].after(0, lambda t=texto_status: (
-                            view.controles['text_area'].delete("1.0", "end"),
-                            view.controles['text_area'].insert("1.0", t)
-                        ))
-
                         disco = ""
                         if system == 'Windows':
                             separar = view.controles['entrada_destino'].get().split("/")
@@ -273,13 +263,9 @@ def copiando_arquivos(origem, destino, view, caminho_log):
                                                    f"Espaço necessário {formatar_tamanho(origem_arquivo.stat().st_size - uso.free)}")
                             pausar_tempo.clear()
 
-                        if pausar:
-                            pausar_tempo.set()
-                            messagebox.showinfo("Pausado", "Clique em OK para continuar")
-                            pausar_tempo.clear()
-                            pausar = False
 
-                        executor.submit(copiar, origem_arquivo, destino_arquivo, tamanho_arq, caminho_log, view, view.controles['janela_principal'])
+
+                        executor.submit(copiar, origem_arquivo, destino_arquivo, caminho_log, view, view.controles['janela_principal'])
                     except Exception as e:
                         erro_encontrado = True
                         registrar_log(caminho_log, f"[ERRO] Lendo arquivo -> {e} -> Origem {origem_arquivo}")
@@ -290,11 +276,43 @@ def copiando_arquivos(origem, destino, view, caminho_log):
 
     atualizar_barra(view, 1, 1)
 
-def copiar(origem_arquivo, destino_arquivo, tamanho_arq, caminho_log, view, janela):
-    global erro_encontrado, soma
+def copiar(origem_arquivo, destino_arquivo, caminho_log, view, janela):
+    global erro_encontrado, soma, pausar
+
+    if pausar:
+        pausar_tempo.set()
+        messagebox.showinfo("Pausado", "Clique em OK para continuar")
+        pausar_tempo.clear()
+        pausar = False
+
     try:
-        if not destino_arquivo.is_file() or (origem_arquivo.stat().st_mtime > destino_arquivo.stat().st_mtime):
-            shutil.copy2(origem_arquivo, destino_arquivo, follow_symlinks=False)
+        # --- ADICIONE ESTAS LINHAS PARA TRATAR O ERRO 206 ---
+        if system == 'Windows':
+            # Resolve o caminho absoluto e aplica o prefixo UNICODE para caminhos longos
+            str_origem = f"\\\\?\\{origem_arquivo.resolve()}"
+            str_destino = f"\\\\?\\{destino_arquivo.resolve()}"
+        else:
+            str_origem = origem_arquivo
+            str_destino = destino_arquivo
+        # ----------------------------------------------------
+
+        # Atualize as verificações e o shutil.copy2 usando as strings formatadas
+        path_destino = Path(str_destino)
+        path_origem = Path(str_origem)
+
+        # follow_symlinks=False evita tentar resolver atalhos/symlinks quebrados
+        tamanho_arq = origem_arquivo.stat(follow_symlinks=False).st_size
+
+        # Atualizações do Tkinter enviadas de forma assíncrona (thread-safe)
+        texto_status = f"{formatar_tamanho(tamanho_arq)} -> {origem_arquivo}"
+        view.controles['janela_principal'].after(0, lambda t=texto_status: (
+            view.controles['text_area'].delete("1.0", "end"),
+            view.controles['text_area'].insert("1.0", t)
+        ))
+
+        if not path_destino.is_file() or (path_origem.stat().st_mtime > path_destino.stat().st_mtime):
+            # shutil.copy2 aceita as strings com o prefixo \\?\
+            shutil.copy2(str_origem, str_destino, follow_symlinks=False)
 
         # 2. SÓ AGORA atualiza o progresso real!
         with lock_soma:
@@ -307,8 +325,6 @@ def copiar(origem_arquivo, destino_arquivo, tamanho_arq, caminho_log, view, jane
             atualizar_barra(view, s, tamanho_total) if liberar_total else None
         ))
     except shutil.SameFileError:
-        # Arquivos são idênticos/mesmo caminho (symlinks).
-        # Ignora silenciosamente para não poluir o log.
         pass
     except Exception as e:
         erro_encontrado = True
