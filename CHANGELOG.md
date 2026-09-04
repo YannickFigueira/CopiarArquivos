@@ -103,3 +103,10 @@
 ## [4.3.14] - 2026-09-02
 ### Fixed
 - Melhorado velocidade de cópia
+
+## [4.3.15] - 2026-09-04
+### Fixed
+- Ajustado para copiar arquivos com mais de 260 caracteres, ajustado visualização do arquivo copiado
+- Corrigido barra de progresso que passou a terminar antes da cópia
+- Corrigido tempo de cópia de arquivos
+- Corrigido pausar, cancelar e fechar o programa, erros apresentados ao corrigir o desempenho da cópia dos arquivos

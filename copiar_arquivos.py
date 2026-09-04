@@ -30,6 +30,17 @@ total_arquivos = 0
 tamanho_total = 0
 soma = 0
 
+
+def ao_fechar_janela():
+    global cancelar
+    # 1. Ativa a flag de cancelamento para interromper workers
+    cancelar = True
+
+    # 3. Se houver uma referência global do executor, cancela as tarefas futuras
+    global executor
+    if 'executor' in globals() and executor is not None:
+        executor.shutdown(wait=False, cancel_futures=True)
+
 def atualiza_tempo(inicio, label):
     """Thread que atualiza o label de tempo decorrido em paralelo."""
     while not parar_tempo.is_set():
@@ -50,14 +61,41 @@ def atualiza_tempo(inicio, label):
         time.sleep(0.2)
 
 def pausar_copia():
-    global pausar
-    pausar = True
+    # 1. Sinaliza o início da pausa (congela as threads da cópia e o cronômetro)
+    pausar_tempo.set()
 
-def cancelar_copia():
+    # 2. Exibe o alerta na interface gráfica de forma síncrona.
+    # O programa fica parado AQUI até o usuário clicar no botão OK
+    messagebox.showinfo("Pausado", "A cópia foi pausada. Clique em OK para continuar.")
+
+    # 3. Quando o usuário clica em OK, desfaz a sinalização para retomar o fluxo
+    pausar_tempo.clear()
+
+def cancelar_copia2():
     global cancelar
     resposta = messagebox.askyesno("Cancelar", "Quer realmente cancelar?")
     if resposta:
         cancelar = True
+
+def cancelar_copia(view):
+    global cancelar
+
+    resposta = messagebox.askyesno("Cancelar", "Quer realmente cancelar?")
+    if resposta:
+        cancelar = True
+
+        # Se estiver pausado, libera as threads para que leiam 'cancelar = True' e terminem
+        pausar_tempo.clear()
+
+        # Atualiza a interface gráfica imediatamente na Thread Principal
+        view.controles['text_area'].delete("1.0", "end")
+        view.controles['text_area'].insert("1.0", "Cópia cancelada pelo usuário.\n")
+
+        # Reseta a barra de progresso
+        if hasattr(view.controles['progress_bar'], 'set'):
+            view.controles['progress_bar'].set(0)
+        elif hasattr(view.controles['progress_bar'], 'delete'):
+            view.controles['progress_bar'].delete("all")
 
 ### Atualiza a barra de progresso ###
 def atualizar_barra(view, valor, total):
@@ -154,8 +192,9 @@ def iniciar_copia(pastas_origem, pastas_destino, view):
     t.start()
 
 def copiando_pastas(pastas_origem, pastas_destino, view):
-    global erro_encontrado
+    global erro_encontrado, cancelar
     erro_encontrado = False
+    cancelar = False
     caminho_log = gerar_arquivo_log()
     registrar_log(caminho_log, "[INFO] Iniciando processo de cópia.")
     limpar_logs()
@@ -222,7 +261,7 @@ def copiando_pastas(pastas_origem, pastas_destino, view):
 lock_soma = threading.Lock()
 
 def copiando_arquivos(origem, destino, view, caminho_log):
-    global cancelar, pausar, tamanho_total, soma, erro_encontrado
+    global tamanho_total, soma, erro_encontrado, executor
 
     lbl_copiado_tamanho = view.controles['label_copiado_contagem']
     registrar_log(caminho_log, f"[INFO] Copiando pasta {origem}")
@@ -235,17 +274,6 @@ def copiando_arquivos(origem, destino, view, caminho_log):
                     pasta_final.mkdir(parents=True, exist_ok=True)
 
                 for f in files:
-                    if cancelar:
-                        view.controles['janela_principal'].after(0, lambda: view.controles['text_area'].delete("1.0", "end"))
-                        view.controles['janela_principal'].after(0, lambda: view.controles['progress_canvas'].delete("all"))
-                        cancelar = False
-                        return
-
-                    if pausar:
-                        # Tratar sinalização de pausa antes de enviar novas tarefas
-                        view.controles['janela_principal'].after(0, lambda: messagebox.showinfo("Pausa", "Tarefa pausada"))
-                        pausar = False
-
                     origem_arquivo = raiz / f
                     try:
                         disco = ""
@@ -277,13 +305,20 @@ def copiando_arquivos(origem, destino, view, caminho_log):
     atualizar_barra(view, 1, 1)
 
 def copiar(origem_arquivo, destino_arquivo, caminho_log, view, janela):
-    global erro_encontrado, soma, pausar
+    global erro_encontrado, soma, cancelar
 
-    if pausar:
-        pausar_tempo.set()
-        messagebox.showinfo("Pausado", "Clique em OK para continuar")
-        pausar_tempo.clear()
-        pausar = False
+    # --- VERIFICAÇÃO DE CANCELAMENTO ---
+    # Se o usuário clicou em "Cancelar" enquanto estava pausado:
+    if cancelar:
+        return
+    # -----------------------------------
+
+    # --- BLOQUEIO DAS THREADS ENQUANTO ESTIVER PAUSADO ---
+    # Se o botão de pausa for clicado (pausar_tempo.set()), todas as threads
+    # que tentarem copiar novos arquivos ficam travadas aqui até o OK ser clicado.
+    while pausar_tempo.is_set():
+        time.sleep(0.1)
+    # -----------------------------------------------------
 
     try:
         # --- ADICIONE ESTAS LINHAS PARA TRATAR O ERRO 206 ---

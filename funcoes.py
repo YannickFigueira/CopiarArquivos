@@ -1,3 +1,4 @@
+import os
 import platform
 import tkinter as tk
 import webbrowser
@@ -49,6 +50,7 @@ class Funcoes:
                 self._vincular_logs()
 
     def _vincular_copiar_arquivos(self):
+
         # --- Controle do Menu ---
         self.view.controles['menu_arquivo'].add_command(label="Abrir log", command=lambda: self.abrir_janela_logs())
         self.view.controles['menu_ajuda'].add_command(label="Verificar atualização",
@@ -63,7 +65,7 @@ class Funcoes:
         self.view.controles['button_selecionar_origem'].configure(command=lambda: self.selecionar_origem())
         self.view.controles['button_selecionar_destino'].configure(command=lambda: self.selecionar_destino())
         self.view.controles['button_executar_copia'].configure(command=lambda: self.executar_acao())
-        self.view.controles['button_cancelar'].configure(command=lambda: copiar_arquivos.cancelar_copia())
+        self.view.controles['button_cancelar'].configure(command=lambda: copiar_arquivos.cancelar_copia(self.view))
         self.view.controles['button_pausar'].configure(command=lambda: copiar_arquivos.pausar_copia())
 
         self.clipboard(self.view.controles['entrada_origem'])
@@ -193,4 +195,12 @@ class Funcoes:
                 if janela_logs_aberta:
                     return
 
-        self.view.controles[f'{janela}'].destroy()
+        copiar_arquivos.ao_fechar_janela()
+        # 4. Destrói a interface gráfica
+        try:
+            self.view.controles[f'{janela}'].destroy()
+        except Exception:
+            pass
+
+        # 5. Força a finalização imediata de todo o processo Python e threads secundárias
+        os._exit(0)
