@@ -203,4 +203,5 @@ class Funcoes:
             pass
 
         # 5. Força a finalização imediata de todo o processo Python e threads secundárias
-        os._exit(0)
+        if not janela == "janela_logs":
+            os._exit(0)
