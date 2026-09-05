@@ -192,9 +192,10 @@ def iniciar_copia(pastas_origem, pastas_destino, view):
     t.start()
 
 def copiando_pastas(pastas_origem, pastas_destino, view):
-    global erro_encontrado, cancelar
+    global erro_encontrado, cancelar, tamanho_total
     erro_encontrado = False
     cancelar = False
+    tamanho_total = 0
     caminho_log = gerar_arquivo_log()
     registrar_log(caminho_log, "[INFO] Iniciando processo de cópia.")
     limpar_logs()
@@ -357,7 +358,7 @@ def copiar(origem_arquivo, destino_arquivo, caminho_log, view, janela):
         # Atualiza a interface gráfica com o progresso REAL concluído
         janela.after(0, lambda s=soma_atual: (
             view.controles['label_copiado_contagem'].configure(text=formatar_tamanho(s)),
-            atualizar_barra(view, s, tamanho_total) if liberar_total else None
+            atualizar_barra(view, s, tamanho_total) if tamanho_total > 0 else None
         ))
     except shutil.SameFileError:
         pass
