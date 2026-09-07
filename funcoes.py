@@ -1,5 +1,4 @@
 import platform
-import tkinter as tk
 from pathlib import Path
 from tkinter import messagebox
 
@@ -17,44 +16,6 @@ system = platform.system()  # Retorna 'Linux', 'Windows', 'Darwin' (Mac)
 # --- Variáveis globais ---
 cancelar = False
 pausar = False
-janela_logs_aberta = False
-
-# --- Comandos gerais ---
-def selecionar_pasta(janela_parent=None):
-    """Abre o seletor de pastas centralizado na janela do aplicativo."""
-    pasta = QFileDialog.getExistingDirectory(
-        parent=janela_parent,
-        caption="Selecione uma pasta",
-        directory=""  # Caminho inicial opcional
-    )
-    return pasta  # Retorna a string do caminho ou "" se o usuário cancelar
-
-# --- Inicio dos Controles
-def visitar_site(janela_parent=None):
-    pagina = "https://github.com/YannickFigueira"
-
-    # Instancia a caixa de mensagem do PyQt6
-    msg_box = QMessageBox(janela_parent)
-    msg_box.setWindowTitle("Sobre")
-    msg_box.setText(
-        f"<b>{estilo.NOME_PROGRAMA} {estilo.VERSION}</b><br>"
-        f"Desenvolvedor: YannickFigueira<br>"
-        f"chronostimeinchain@gmail.com<br><br>"
-        f"Deseja visitar a página?"
-    )
-    msg_box.setIcon(QMessageBox.Icon.Information)
-
-    # Configura os botões em português
-    btn_sim = msg_box.addButton("Sim", QMessageBox.ButtonRole.YesRole)
-    btn_nao = msg_box.addButton("Não", QMessageBox.ButtonRole.NoRole)
-
-    msg_box.setDefaultButton(btn_sim)
-    msg_box.exec()
-
-    # Verifica qual botão foi clicado
-    if msg_box.clickedButton() == btn_sim:
-        # Abre a URL (usando QDesktopServices ou webbrowser.open)
-        QDesktopServices.openUrl(QUrl(pagina))
 
 class Funcoes:
     def __init__(self, view):
@@ -76,20 +37,17 @@ class Funcoes:
         self.view.controles['menu_ajuda'].addAction("Verificar atualização",
                                lambda: verificarversao.consultar_lancamento(estilo.REPO, estilo.VERSION))
         self.view.controles['menu_ajuda'].addAction("Sobre",
-                               lambda: visitar_site())
+                               lambda: self.visitar_site())
 
         # --- Controles da Janela Principal ---
         self.view.controles['btn_origem'].clicked.connect(lambda: self.selecionar_origem())
         self.view.controles['btn_destino'].clicked.connect(lambda: self.selecionar_destino())
+        self.view.controles['btn_exec'].clicked.connect(lambda: self.executar_acao())
         """
         # --- Controles da Janela Principal ---
-        self.view.controles['button_executar_copia'].configure(command=lambda: self.executar_acao())
         self.view.controles['button_cancelar'].configure(command=lambda: copiar_arquivos.cancelar_copia(self.view))
         self.view.controles['button_pausar'].configure(command=lambda: copiar_arquivos.pausar_copia())
         """
-
-        #self.clipboard(self.view.controles['entrada_origem'])
-        #self.clipboard(self.view.controles['entrada_destino'])
 
     def _vincular_logs(self):
         # --- Inicialização da janela logs ---
@@ -120,22 +78,54 @@ class Funcoes:
         # .exec() bloqueia a execução até que o QDialog seja fechado
         visual.exec()
 
-    # --- Comandos dos Menus ---
-    def fechar(self, nome):
-        self.view.controles[nome].quit()
-
     # --- Comando dos Controles ---
     def selecionar_origem(self):
         self.view.controles['entrada_origem'].clear()
-        self.view.controles['entrada_origem'].setText(selecionar_pasta())
+        self.view.controles['entrada_origem'].setText(self.selecionar_pasta())
 
     def selecionar_destino(self):
         self.view.controles['entrada_destino'].clear()
-        self.view.controles['entrada_destino'].setText(selecionar_pasta())
+        self.view.controles['entrada_destino'].setText(self.selecionar_pasta())
 
+    def selecionar_pasta(self=None):
+        """Abre o seletor de pastas centralizado na janela do aplicativo."""
+        pasta = QFileDialog.getExistingDirectory(
+            parent=self.view,
+            caption="Selecione uma pasta",
+            directory=""  # Caminho inicial opcional
+        )
+        return pasta  # Retorna a string do caminho ou "" se o usuário cancelar
+
+    def visitar_site(self=None):
+        pagina = "https://github.com/YannickFigueira"
+
+        # Instancia a caixa de mensagem do PyQt6
+        msg_box = QMessageBox(self.view)
+        msg_box.setWindowTitle("Sobre")
+        msg_box.setText(
+            f"<b>{estilo.NOME_PROGRAMA} {estilo.VERSION}</b><br>"
+            f"Desenvolvedor: YannickFigueira<br>"
+            f"chronostimeinchain@gmail.com<br><br>"
+            f"Deseja visitar a página?"
+        )
+        msg_box.setIcon(QMessageBox.Icon.Information)
+
+        # Configura os botões em português
+        btn_sim = msg_box.addButton("Sim", QMessageBox.ButtonRole.YesRole)
+        btn_nao = msg_box.addButton("Não", QMessageBox.ButtonRole.NoRole)
+
+        msg_box.setDefaultButton(btn_sim)
+        msg_box.exec()
+
+        # Verifica qual botão foi clicado
+        if msg_box.clickedButton() == btn_sim:
+            # Abre a URL (usando QDesktopServices ou webbrowser.open)
+            QDesktopServices.openUrl(QUrl(pagina))
+
+    # --- FUNCIONALIDADES ---
     def executar_acao(self):
-        texto_origem = self.view.controles['entrada_origem'].get().strip().replace("\\", "/")
-        destino = self.view.controles['entrada_destino'].get().strip().replace("\\", "/")
+        texto_origem = self.view.controles['entrada_origem'].text().strip().replace("\\", "/")
+        destino = self.view.controles['entrada_destino'].text().strip().replace("\\", "/")
         verificar_destino = destino.split("/")
 
         verificar = ""
@@ -148,58 +138,33 @@ class Funcoes:
             if Path(texto_origem).is_dir():
                 if not destino == "":
                     if Path(verificar).is_dir():
-                        self.view.controles['btn_cancel'].setEnable(True)
-                        self.view.controles['button_pausar'].configure(state="normal")
+                        self.view.controles['btn_cancel'].setEnabled(True)
+                        self.view.controles['btn_pause'].setEnabled(True)
                         origem_pasta = [texto_origem]
                         destino_pasta = [destino]
                         copiar_arquivos.iniciar_copiar_arquivos(self.view, origem_pasta, destino_pasta)
                     else:
                         messagebox.showwarning("Aviso", "Selecionar pasta de destino válida")
-                        self.view.controles['entrada_destino'].focus_set()
                 else:
                     messagebox.showwarning("Aviso", "Selecione a pasta de destino, ou cole o caminho")
-                    self.view.controles['entrada_destino'].focus_set()
             else:
                 messagebox.showwarning("Aviso", "Pasta não existe, verifique")
-                self.view.controles['entrada_origem'].focus_set()
         else:
             messagebox.showwarning("Aviso", "Selecionar a pasta de origem, ou colar o caminho")
-            self.view.controles['entrada_origem'].focus_set()
 
-    # --- Controles gerais ---
-    def clipboard(self, entrada):
-        def mostrar_menu(event):
-            # Guardar qual Entry foi clicado
-            global entry_atual
-            entry_atual = event.widget
-            menu_popup.tk_popup(event.x_root, event.y_root)
+    def atualizar_barra(self, valor, total):
+        if total <= 0:
+            return
+        porcentagem = (valor / total) * 100
+        pbar = self.view.controles['progress_bar']
+        pbar.setFormat(f"{porcentagem:.3f}%")
+        pbar.setValue(int(porcentagem))
 
-        def copiar():
-            try:
-                self.view.controles['janela_principal'].clipboard_clear()
-                self.view.controles['janela_principal'].clipboard_append(entry_atual.selection_get())
-            except tk.TclError:
-                pass  # nada selecionado
-
-        def colar():
-            try:
-                entry_atual.insert(tk.INSERT, self.view.controles['janela_principal'].clipboard_get())
-            except tk.TclError:
-                pass  # clipboard vazio
-
-        def recortar():
-            try:
-                self.view.controles['janela_principal'].clipboard_clear()
-                self.view.controles['janela_principal'].clipboard_append(entry_atual.selection_get())
-                entry_atual.delete("sel.first", "sel.last")
-            except tk.TclError:
-                pass  # nada selecionado
-
-        # Criar menu único
-        menu_popup = tk.Menu(self.view.controles['janela_principal'], tearoff=0)
-        menu_popup.add_command(label="Copiar", command=copiar)
-        menu_popup.add_command(label="Colar", command=colar)
-        menu_popup.add_command(label="Recortar", command=recortar)
-
-        # Associar clique direito a ambos os Entry
-        entrada.bind("<Button-3>", mostrar_menu)
+    def exibir_mensagem(self, tipo, titulo, mensagem):
+        # Substitui os messageboxes do Tkinter pelos nativos do PyQt6
+        if tipo == "warning":
+            QMessageBox.warning(self.view, titulo, mensagem)
+        elif tipo == "critical":
+            QMessageBox.critical(self.view, titulo, mensagem)
+        else:
+            QMessageBox.information(self.view, titulo, mensagem)

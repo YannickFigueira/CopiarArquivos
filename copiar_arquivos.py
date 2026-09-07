@@ -53,10 +53,10 @@ def atualiza_tempo(inicio, label):
         minutos, segundos = divmod(resto, 60)  # divide o restante em minutos e segundos
 
         # agenda a atualização do label na thread principal do Tkinter
-        def _set_label():
-            label.configure(text=f"{int(horas):02}:{int(minutos):02}:{segundos:04.1f}")
+        #def _set_label():
+        label.setText(f"{int(horas):02}:{int(minutos):02}:{segundos:04.1f}")
 
-        label.after(0, _set_label)
+        #label.after(0, _set_label)
         # frequência de atualização (ajuste conforme desejar)
         time.sleep(0.2)
 
@@ -88,8 +88,7 @@ def cancelar_copia(view):
         pausar_tempo.clear()
 
         # Atualiza a interface gráfica imediatamente na Thread Principal
-        view.controles['text_area'].delete("1.0", "end")
-        view.controles['text_area'].insert("1.0", "Cópia cancelada pelo usuário.\n")
+        view.controles['lbl_descricao'].setText("Cópia cancelada pelo usuário!")
 
         # Reseta a barra de progresso
         if hasattr(view.controles['progress_bar'], 'set'):
@@ -99,21 +98,21 @@ def cancelar_copia(view):
 
 ### Atualiza a barra de progresso ###
 def atualizar_barra(view, valor, total):
-    porcentagem = (valor / total)
-    view.controles['progress_bar'].set(porcentagem)
-    #self.view.controles['lbl_porcentagem'].configure(text=f"{(porcentagem * 100):.3f}%")
-    # 2. Atualiza o texto do canvas
-    texto_id = view.controles['lbl_porcentagem']
-    view.controles['progress_bar']._canvas.itemconfig(texto_id, text=f"{(porcentagem * 100):.3f}%")
+    if total <= 0:
+        return
+    porcentagem = (valor / total) * 100
+    pbar = view.controles['progress_bar']
+    pbar.setFormat(f"{porcentagem:.3f}%")
+    pbar.setValue(int(porcentagem))
 
 
 def alterar_estado_controles(view, estado):
-    view.controles['entrada_origem'].configure(state=estado)
-    view.controles['entrada_destino'].configure(state=estado)
-    view.controles['button_selecionar_origem'].configure(state=estado)
-    view.controles['button_selecionar_destino'].configure(state=estado)
-    view.controles['button_executar_copia'].configure(state=estado)
-    view.controles['chk_nome_origem'].configure(state=estado)
+    view.controles['entrada_origem'].setEnabled(estado)
+    view.controles['entrada_destino'].setEnabled(estado)
+    view.controles['btn_origem'].setEnabled(estado)
+    view.controles['btn_destino'].setEnabled(estado)
+    view.controles['btn_exec'].setEnabled(estado)
+    view.controles['chk_nome_origem'].setEnabled(estado)
 
 # --- Inicio do procedimento
 def iniciar_calculo_tamanho(view, pastas_origem, liberar):
@@ -126,8 +125,7 @@ def iniciar_calculo_tamanho(view, pastas_origem, liberar):
 
 def tamanho_pasta(view, pastas_origem, liberar):
     global total_arquivos, liberar_total, tamanho_total
-    lbl_tamanho_exibir = view.controles['label_tamanho_contagem']
-    lbl_tamanho_exibir.after(0, lambda: view.controles['label_tamanho_contagem'].configure(text="Atualizando..."))
+    view.controles['label_tamanho_contagem'].settext("Atualizando...")
     tamanho_total = 0
     total_arquivos = 0
 
@@ -140,7 +138,7 @@ def tamanho_pasta(view, pastas_origem, liberar):
                 total_arquivos += 1
                 tamanho_total += item.stat(follow_symlinks=False).st_size
 
-    lbl_tamanho_exibir.after(0, lambda: view.controles['label_tamanho_contagem'].configure(text=formatar_tamanho(tamanho_total)))
+    view.controles['label_tamanho_contagem'].configure(text=formatar_tamanho(tamanho_total))
 
     match liberar:
         case "execucao":
@@ -179,7 +177,7 @@ def desligar_computador():
 def iniciar_copiar_arquivos(view, pastas_origem, pastas_destino):
     global soma
     soma = 0
-    alterar_estado_controles(view, "disabled")
+    alterar_estado_controles(view, False)
     iniciar_calculo_tamanho(view, pastas_origem, "execucao")
     iniciar_copia(pastas_origem, pastas_destino, view)
 
@@ -199,7 +197,7 @@ def copiando_pastas(pastas_origem, pastas_destino, view):
     caminho_log = gerar_arquivo_log()
     registrar_log(caminho_log, "[INFO] Iniciando processo de cópia.")
     limpar_logs()
-    view.controles['text_area'].delete("1.0", "end")  # apaga tudo
+    view.controles['lbl_descricao'].setText("")  # apaga tudo
 
     parar_tempo.clear()
     inicio = time.time()  # marca o início da execução
@@ -222,7 +220,7 @@ def copiando_pastas(pastas_origem, pastas_destino, view):
             caminho_origem = Path(origem)
             base_destino = Path(destino_base)
             # / une caminhos automaticamente independente do S.O.
-            if view.controles['var_chk_origem'].get():
+            if view.controles['chk_nome_origem'].isChecked():
                 pasta_destino_final = base_destino / caminho_origem.name
             else:
                 pasta_destino_final = base_destino
@@ -236,24 +234,23 @@ def copiando_pastas(pastas_origem, pastas_destino, view):
         thread_tempo.join(timeout=1.0)
 
     # Atualiza a interface ao finalizar todas as cópias
-    view.controles['text_area'].delete("1.0", "end")  # apaga tudo
     if not cancelar:
-        view.controles['text_area'].insert("1.0", "Concluído cópia!")
+        view.controles['lbl_descricao'].setText("Concluído cópia!")
     else:
-        view.controles['text_area'].insert("1.0", "Execução cancelada!")
+        view.controles['lbl_descricao'].setText("Execução cancelada!")
 
-    alterar_estado_controles(view, "normal")
-    view.controles['button_cancelar'].configure(state="disabled")
-    view.controles['button_pausar'].configure(state="disabled")
+    alterar_estado_controles(view, True)
+    view.controles['btn_cancel'].setEnabled(False)
+    view.controles['btn_pause'].setEnabled(False)
 
     if erro_encontrado:
         messagebox.showwarning("Erro", "Foi encontrado erros durante a cópia, vá em Arquivos -> Abrir log, para verificar")
 
-    if view.controles['var_chk_desligar'].get():
+    if view.controles['chk_desligar'].isChecked():
         desligar_computador()
         view.controles['janela_principal'].destroy()
 
-    if view.controles['var_chk_encerrar'].get():
+    if view.controles['chk_encerrar'].isChecked():
         view.controles['janela_principal'].destroy()
 
     registrar_log(caminho_log, "[INFO] Processo finalizado.\n" + ("_" * 40))
@@ -342,8 +339,7 @@ def copiar(origem_arquivo, destino_arquivo, caminho_log, view, janela):
         # Atualizações do Tkinter enviadas de forma assíncrona (thread-safe)
         texto_status = f"{formatar_tamanho(tamanho_arq)} -> {origem_arquivo}"
         view.controles['janela_principal'].after(0, lambda t=texto_status: (
-            view.controles['text_area'].delete("1.0", "end"),
-            view.controles['text_area'].insert("1.0", t)
+            view.controles['lbl_descricao'].setText(t)
         ))
 
         if not path_destino.is_file() or (path_origem.stat().st_mtime > path_destino.stat().st_mtime):
@@ -357,7 +353,7 @@ def copiar(origem_arquivo, destino_arquivo, caminho_log, view, janela):
 
         # Atualiza a interface gráfica com o progresso REAL concluído
         janela.after(0, lambda s=soma_atual: (
-            view.controles['label_copiado_contagem'].configure(text=formatar_tamanho(s)),
+            view.controles['label_copiado_contagem'].setText(formatar_tamanho(s)),
             atualizar_barra(view, s, tamanho_total) if tamanho_total > 0 else None
         ))
     except shutil.SameFileError:
