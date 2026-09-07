@@ -1,6 +1,5 @@
-import customtkinter as ctk
 from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import QMainWindow, QDialog, QVBoxLayout, QTextEdit, QPushButton, QComboBox, QLabel, QHBoxLayout, \
+from PyQt6.QtWidgets import QDialog, QVBoxLayout, QPushButton, QComboBox, QLabel, QHBoxLayout, \
     QFrame
 
 import estilo
@@ -62,7 +61,6 @@ class JanelaLogs(QDialog):
         self.moldura_log_lista = QFrame()
         self.moldura_log_lista.setFrameShape(QFrame.Shape.StyledPanel)
         self.moldura_log_lista.setFixedHeight(220)
-        #self.moldura_log_lista.setFixedWidth(250)
         self.moldura_log_lista.setObjectName("FrmDescricao")
 
         # Layout interno da moldura
@@ -75,7 +73,6 @@ class JanelaLogs(QDialog):
             Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop
         )
         self.lbl_logs.setWordWrap(True)
-        self.lbl_logs.setStyleSheet("border: none; color: #ffffff;")
 
         layout_frame_logs.addWidget(self.lbl_logs)
         self.controles["lbl_logs"] = self.lbl_logs
