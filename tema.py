@@ -44,6 +44,7 @@ def atualizar_tema(self):
     self.setStyleSheet(f"""
             #ContainerPrincipal {{
                 background-color: {bg_container};
+                /*background-color: #900000;*/
                 border-radius: 10px;
             }}
             #FrmDescricao {{
@@ -172,5 +173,30 @@ def atualizar_tema(self):
             QMenu::item:selected {{
                 background-color: {accent_color};
                 color: white;
+            }}
+            /*CSS subjanela*/
+            #BarraTituloSubjanela {{
+                background-color: {bg_card};
+                border-radius: 6px;
+                border-bottom: 1px solid #333333;
+            }}
+            
+            #LblTituloSubjanela {{
+                color: {text_color};
+                font-size: 14px;
+                font-weight: bold;
+            }}
+            
+            #BtnFecharSubjanela {{
+                background-color: transparent;
+                color: {text_subtle};
+                border: none;
+                border-radius: 4px;
+                font-size: 14px;
+            }}
+            
+            #BtnFecharSubjanela:hover {{
+                background-color: #c0392b;
+                color: #ffffff;
             }}
         """)

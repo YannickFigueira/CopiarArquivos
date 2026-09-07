@@ -54,6 +54,8 @@ class Funcoes:
                 self._vincular_logs()
 
     def _vincular_copiar_arquivos(self):
+        # --- Controle do Menu ---
+        self.view.controles['menu_arquivo'].addAction("Abrir logs", lambda: self.abrir_janela_logs())
         # --- Controles da Janela Principal ---
         self.view.controles['btn_origem'].clicked.connect(lambda: self.selecionar_origem())
         self.view.controles['btn_destino'].clicked.connect(lambda: self.selecionar_destino())
@@ -94,16 +96,14 @@ class Funcoes:
 
     # --- Inicialização das janelas ---
     def abrir_janela_logs(self):
-        global janela_logs_aberta
-        # 1. Cria a parte visual
-        visual = JanelaLogs(self.view.controles['janela_principal'])
+        # Passamos self.view como parent para centralizar e manter por cima
+        visual = JanelaLogs(parent=self.view)
 
-        # 2. Cria a lógica e passa a visão para ela controlar
-        logica = Funcoes(visual)
+        # Se precisar de uma classe de controle dedicada para os logs:
+        # logica = FuncoesLogs(visual)
 
-        janela_logs_aberta = True
-        logica.view.controles['janela_logs'].wait_window()
-        janela_logs_aberta = False
+        # .exec() bloqueia a execução até que o QDialog seja fechado
+        visual.exec()
 
     # --- Comandos dos Menus ---
     def fechar(self, nome):

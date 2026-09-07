@@ -32,7 +32,7 @@ class CopiarArquivos(QMainWindow):
         self.controles = {}
 
         self._criar_layout()
-        #self._criar_barra_menu()
+        self._criar_barra_menu()
 
     def _criar_layout(self):
         layout_raiz = QVBoxLayout(self.container)
@@ -168,7 +168,7 @@ class CopiarArquivos(QMainWindow):
         self.controles['chk_nome_origem'] = self.chk_nome_origem
         self.controles['chk_desligar'] = self.chk_desligar
 
-        # --- VISOR DOS ARQUIVOS COPIADOS ---
+        # --- LINHA VISOR DOS ARQUIVOS COPIADOS ---
         # 1. Cria o QFrame container
         frame_info = QFrame()
         frame_info.setFrameShape(QFrame.Shape.StyledPanel)
@@ -214,6 +214,7 @@ class CopiarArquivos(QMainWindow):
 
         self.controles['progress_bar'] = pbar
 
+        # --- LINHA TEMPO E ARQUIVOS COPIADOS ---
         layout_arquivo_tempo = QHBoxLayout()
         lbl_copiado = QLabel("Copiado:")
         lbl_copiado_valor = QLabel(f"{10*"-"}")
@@ -227,12 +228,6 @@ class CopiarArquivos(QMainWindow):
 
         layout_controles.addLayout(layout_arquivo_tempo)
 
-
-
-
-
-
-
         # --- CARREGAMENTO DOS CONTROLES ---
         layout_conteudo.addWidget(frame)
         layout_raiz.addLayout(layout_conteudo)
@@ -243,7 +238,13 @@ class CopiarArquivos(QMainWindow):
         # --- MONITORAMENTO E APLICAÇÃO DO TEMA ---
         tema.conectar_mudanca_tema(self)
         tema.atualizar_tema(self)
-        pass
+
+    def _criar_barra_menu(self):
+        menu_arquivo = self.barra_titulo.adicionar_submenu("Arquivo")
+        self.controles['menu_arquivo'] = menu_arquivo
+
+        menu_ajuda = self.barra_titulo.adicionar_submenu("Ajuda")
+        self.controles['menu_ajuda'] = menu_ajuda
 
     def _criar_layout_old(self):
         # --- Controles ---
@@ -444,7 +445,7 @@ class CopiarArquivos(QMainWindow):
         self.label_tempo_decorrido.grid(row=2, column=3, padx=padding_controls, pady=padding_controls, sticky="e")
         self.controles['label_tempo_decorrido'] = self.label_tempo_decorrido
 
-    def _criar_barra_menu(self):
+    def _criar_barra_menu_old(self):
         self.barra_menu = tk.Menu(self.janela_principal)
         self.janela_principal.config(menu=self.barra_menu)
 
