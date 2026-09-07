@@ -5,6 +5,8 @@ import webbrowser
 from pathlib import Path
 from tkinter import messagebox, filedialog
 
+from PyQt6.QtWidgets import QFileDialog
+
 import verificarversao, estilo, copiar_arquivos
 from janela_logs import JanelaLogs
 from arquivo_log import ler_pasta_log, abrir_logs
@@ -18,12 +20,14 @@ pausar = False
 janela_logs_aberta = False
 
 # --- Comandos gerais ---
-def selecionar_pasta():
-    pasta = filedialog.askdirectory(title="Selecione uma pasta")
-    if pasta:  # se o usuário não cancelar
-        return pasta
-    else:
-        return ""
+def selecionar_pasta(janela_parent=None):
+    """Abre o seletor de pastas centralizado na janela do aplicativo."""
+    pasta = QFileDialog.getExistingDirectory(
+        parent=janela_parent,
+        caption="Selecione uma pasta",
+        directory=""  # Caminho inicial opcional
+    )
+    return pasta  # Retorna a string do caminho ou "" se o usuário cancelar
 
 # --- Inicio dos Controles
 def visitar_site():
@@ -50,7 +54,10 @@ class Funcoes:
                 self._vincular_logs()
 
     def _vincular_copiar_arquivos(self):
-
+        # --- Controles da Janela Principal ---
+        self.view.controles['btn_origem'].clicked.connect(lambda: self.selecionar_origem())
+        self.view.controles['btn_destino'].clicked.connect(lambda: self.selecionar_destino())
+        """
         # --- Controle do Menu ---
         self.view.controles['menu_arquivo'].add_command(label="Abrir log", command=lambda: self.abrir_janela_logs())
         self.view.controles['menu_ajuda'].add_command(label="Verificar atualização",
@@ -60,17 +67,13 @@ class Funcoes:
         self.view.controles['menu_ajuda'].add_command(label="Sair",
                                                         command=lambda: self.fechar('janela_principal'))
         # --- Controles da Janela Principal ---
-        self.view.controles['janela_principal'].protocol("WM_DELETE_WINDOW",
-                                                         lambda: self.fechar_janelas('janela_principal'))
-        self.view.controles['button_selecionar_origem'].configure(command=lambda: self.selecionar_origem())
-        self.view.controles['button_selecionar_destino'].configure(command=lambda: self.selecionar_destino())
         self.view.controles['button_executar_copia'].configure(command=lambda: self.executar_acao())
         self.view.controles['button_cancelar'].configure(command=lambda: copiar_arquivos.cancelar_copia(self.view))
         self.view.controles['button_pausar'].configure(command=lambda: copiar_arquivos.pausar_copia())
 
         self.clipboard(self.view.controles['entrada_origem'])
         self.clipboard(self.view.controles['entrada_destino'])
-
+        """
     def _vincular_logs(self):
         # --- Inicialização da janela logs ---
         arquivos_log = ler_pasta_log()
@@ -108,12 +111,12 @@ class Funcoes:
 
     # --- Comando dos Controles ---
     def selecionar_origem(self):
-        self.view.controles['entrada_origem'].delete(0, 'end')
-        self.view.controles['entrada_origem'].insert(0, selecionar_pasta())
+        self.view.controles['entrada_origem'].clear()
+        self.view.controles['entrada_origem'].setText(selecionar_pasta())
 
     def selecionar_destino(self):
-        self.view.controles['entrada_destino'].delete(0, 'end')
-        self.view.controles['entrada_destino'].insert(0, selecionar_pasta())
+        self.view.controles['entrada_destino'].clear()
+        self.view.controles['entrada_destino'].setText(selecionar_pasta())
 
     def executar_acao(self):
         texto_origem = self.view.controles['entrada_origem'].get().strip().replace("\\", "/")
@@ -130,7 +133,7 @@ class Funcoes:
             if Path(texto_origem).is_dir():
                 if not destino == "":
                     if Path(verificar).is_dir():
-                        self.view.controles['button_cancelar'].configure(state="normal")
+                        self.view.controles['btn_cancel'].setEnable(True)
                         self.view.controles['button_pausar'].configure(state="normal")
                         origem_pasta = [texto_origem]
                         destino_pasta = [destino]

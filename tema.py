@@ -46,6 +46,11 @@ def atualizar_tema(self):
                 background-color: {bg_container};
                 border-radius: 10px;
             }}
+            #FrmDescricao {{
+                background-color: {bg_card};
+                border: 1px solid #444444;
+                border-radius: 6px;
+            }}
             #BarraTitulo {{
                 background-color: {bg_card};
                 border-radius: 6px;
@@ -56,6 +61,13 @@ def atualizar_tema(self):
                 font-weight: bold;
                 padding-left: 5px;
                 padding-right: 5px;
+            }}
+            #LblDescricao{{
+                color: {text_color};
+                background-color: {bg_card};
+                font-size: 13px;
+                line-height: 1.2;
+                border: none; /* Remove bordas internas */
             }}
             #BtnMenu {{
                 background-color: {accent_color};
@@ -88,6 +100,7 @@ def atualizar_tema(self):
                 border-radius: 4px;
             }}
             #BtnAcao:hover {{ background-color: {accent_hover}; }}
+            #BtnAcao:disabled {{ color: #888888; }}
             #MolduraTexto {{
                 background-color: {bg_card};
                 border-radius: 6px;
@@ -120,6 +133,36 @@ def atualizar_tema(self):
             QProgressBar::chunk {{
                 background-color: {accent_color};
                 border-radius: 12px;
+            }}
+            QCheckBox {{
+                color: {text_color};
+                font-size: 12px;
+                min-width: 120px;
+                spacing: 6px; /* Espaço entre o quadrado e o texto */
+            }}
+            QCheckBox:disabled {{
+                color: #888888;
+            }}
+            QCheckBox::indicator {{
+                width: 16px;
+                height: 16px;
+                border-radius: 4px;
+                border: 1px solid #555555;
+                background-color: {bg_card};
+            }}
+            QCheckBox::indicator:checked {{
+                background-color: {accent_color};
+                border: 1px solid {accent_color};
+            }}
+            /* Indicador (Caixa) quando desabilitado */
+            QCheckBox#ChkOpcao::indicator:disabled {{
+                border: 1px solid #444444;      /* Borda escura/opaca */
+                background-color: #2b2b2b;     /* Fundo cinza escuro/inativo */
+            }}
+            /* Caso seja marcado E desabilitado ao mesmo tempo */
+            QCheckBox#ChkOpcao::indicator:checked:disabled {{
+                background-color: #555555;     /* Tom de destaque apagado/cinza */
+                border: 1px solid #555555;
             }}
             QMenu {{
                 background-color: {bg_card};

@@ -1,5 +1,8 @@
 import argparse
+import sys
+
 import customtkinter as ctk
+from PyQt6.QtWidgets import QApplication
 
 import estilo
 from funcoes import Funcoes
@@ -13,13 +16,14 @@ args = parser.parse_args()
 # --- Inicialização da Interface ---
 if __name__ == "__main__":
     # 1. Inicia a janela base do Tkinter
-    root = ctk.CTk()
+    root = QApplication(sys.argv)
 
     # 2. Cria a parte visual (passando o root e a versão)
-    visual = CopiarArquivos(root)
+    visual = CopiarArquivos()
 
     # 3. Passa a visão para a sua classe de Lógica controlar
     logica = Funcoes(visual)
 
     # 4. Inicia o programa
-    root.mainloop()
+    visual.show()
+    sys.exit(root.exec())
