@@ -1,6 +1,3 @@
-import customtkinter as ctk
-import tkinter as tk
-
 from PyQt6.QtCore import Qt, QPoint
 from PyQt6.QtWidgets import QMainWindow, QFrame, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QCheckBox, \
     QProgressBar
