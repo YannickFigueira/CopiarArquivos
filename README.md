@@ -73,35 +73,16 @@ sudo dpkg -i copiararquivos.deb
 sudo apt-get install -f  # Corrige dependências, se necessário
 
 ```
+---
+## 💾 Downloads (Versão v5.0.0)
 
+| Sistema Operacional | Formato | Link de Download |
+| :--- | :--- | :--- |
+| **Linux (Debian/Ubuntu)** | `.deb` | [📦 Baixar copiararquivos.deb](https://github.com/YannickFigueira/CopiarArquivos/releases/download/v5.0.0/copiararquivos.deb) |
+| **Windows (Portátil)** | `.exe` | [💻 Baixar copiararquivos.exe](https://github.com/YannickFigueira/CopiarArquivos/releases/download/v5.0.0/copiararquivos.exe) |
 ---
 
 ## 📧 Contato
 
 * **Autor:** Yannick de Oliveira Figueira
 * **E-mail:** [chronostimeinchain@gmail.com](mailto:chronostimeinchain@gmail.com)
-
-```
-
----
-
-## 🖼️ Como adicionar a imagem da tela do programa no Markdown
-
-Para que a imagem apareça corretamente no seu repositório (GitHub, GitLab, etc.), siga estes passos:
-
-1. **Crie uma pasta no seu projeto:**
-   Crie uma estrutura de pastas como `docs/screenshots/` dentro do diretório do seu código.
-
-2. **Salve a foto/print:**
-   Tire uma captura de tela da sua aplicação em execução e salve-a como `app.png` dentro da pasta `docs/screenshots/`.
-
-3. **Referencie no Markdown:**
-   No arquivo `README.md`, adicione o seguinte trecho onde deseja que a imagem apareça:
-
-   ```markdown
-   ![Interface do Programa](docs/screenshots/app.png)
-
-```
-
-* O texto dentro dos colchetes `[...]` é o texto alternativo (*alt text*).
-* O caminho dentro dos parênteses `(...)` é o caminho relativo onde a imagem está salva dentro da pasta do projeto.
