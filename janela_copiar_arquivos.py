@@ -180,14 +180,8 @@ class CopiarArquivos(QMainWindow):
         frame_info.setObjectName("FrmDescricao")
 
         # 3. Cria o QLabel com Quebra Automática de Linha
-        texto_longo = (
-            "Este é um texto longo de exemplo para demonstrar como funciona "
-            "a quebra de linha automática (wordWrap) no PyQt6. O texto vai se "
-            "ajustar dinamicamente à largura do container e ocupar até cinco "
-            "linhas na interface gráfica com total fluidez e responsividade."
-        )
 
-        lbl_descricao = QLabel(texto_longo)
+        lbl_descricao = QLabel()
         lbl_descricao.setObjectName("LblDescricao")
 
         # Ativa o 'wraplength' nativo do PyQt6
