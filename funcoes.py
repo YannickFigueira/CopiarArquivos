@@ -7,6 +7,7 @@ from PyQt6.QtGui import QDesktopServices
 from PyQt6.QtWidgets import QFileDialog, QMessageBox
 
 import verificarversao, estilo, copiar_arquivos
+from copiar import WorkerCopia
 from janela_logs import JanelaLogs
 from arquivo_log import ler_pasta_log, abrir_logs
 
@@ -42,11 +43,11 @@ class Funcoes:
         # --- Controles da Janela Principal ---
         self.view.controles['btn_origem'].clicked.connect(lambda: self.selecionar_origem())
         self.view.controles['btn_destino'].clicked.connect(lambda: self.selecionar_destino())
-        self.view.controles['btn_exec'].clicked.connect(lambda: self.executar_acao())
+        self.view.controles['btn_exec'].clicked.connect(lambda: self.executar_copia())
+        self.view.controles['btn_cancel'].clicked.connect(lambda: self.worker.cancelar_copia())
+        self.view.controles['btn_pause'].clicked.connect(lambda: self.acionar_botao_pausa())
         """
         # --- Controles da Janela Principal ---
-        self.view.controles['button_cancelar'].configure(command=lambda: copiar_arquivos.cancelar_copia(self.view))
-        self.view.controles['button_pausar'].configure(command=lambda: copiar_arquivos.pausar_copia())
         """
 
     def _vincular_logs(self):
@@ -123,48 +124,125 @@ class Funcoes:
             QDesktopServices.openUrl(QUrl(pagina))
 
     # --- FUNCIONALIDADES ---
-    def executar_acao(self):
-        texto_origem = self.view.controles['entrada_origem'].text().strip().replace("\\", "/")
-        destino = self.view.controles['entrada_destino'].text().strip().replace("\\", "/")
-        verificar_destino = destino.split("/")
+    def executar_copia(self):
+        # 1. Instancia o worker
+        self.worker = WorkerCopia(
+            pastas_origem=[self.view.controles['entrada_origem'].text().strip()],
+            pastas_destino=[self.view.controles['entrada_destino'].text().strip()],
+            incluir_pasta_origem=self.view.controles['chk_nome_origem'].isChecked(),
+            desligar=self.view.controles['chk_desligar'].isChecked(),
+            encerrar=self.view.controles['chk_encerrar'].isChecked(),
+        )
 
-        verificar = ""
-        if system == 'Windows':
-            verificar = f"{verificar_destino[0]}"
-        elif system == 'Linux':
-            verificar = f"/{verificar_destino[0]}"
+        # 2. Conecta os Sinais às funções da sua interface gráfica
+        # Conecta o sinal de pausa para exibir a caixa de diálogo
+        self.worker.sinal_pausado.connect(self.ao_pausar_copia)
+        self.worker.sinal_progresso.connect(self.ao_atualizar_progresso)
+        self.worker.sinal_status.connect(
+            self.view.controles['lbl_descricao'].setText
+        )
+        self.worker.sinal_tempo.connect(
+            self.view.controles['label_tempo_decorrido'].setText
+        )
+        self.worker.sinal_tamanho_calculado.connect(
+            self.view.controles['label_tamanho_contagem'].setText
+        )
+        self.worker.sinal_alerta.connect(self.exibir_alerta)
+        self.worker.sinal_concluido.connect(self.ao_concluir_copia)
 
-        if not texto_origem == "":
-            if Path(texto_origem).is_dir():
-                if not destino == "":
-                    if Path(verificar).is_dir():
-                        self.view.controles['btn_cancel'].setEnabled(True)
-                        self.view.controles['btn_pause'].setEnabled(True)
-                        origem_pasta = [texto_origem]
-                        destino_pasta = [destino]
-                        copiar_arquivos.iniciar_copiar_arquivos(self.view, origem_pasta, destino_pasta)
-                    else:
-                        messagebox.showwarning("Aviso", "Selecionar pasta de destino válida")
-                else:
-                    messagebox.showwarning("Aviso", "Selecione a pasta de destino, ou cole o caminho")
-            else:
-                messagebox.showwarning("Aviso", "Pasta não existe, verifique")
-        else:
-            messagebox.showwarning("Aviso", "Selecionar a pasta de origem, ou colar o caminho")
+        # 3. ZERA A INTERFACE ANTES DE INICIAR
+        self.zerar_barra_progresso()
+        self.view.controles['label_tempo_decorrido'].setText("00:00:00.0")
+        self.view.controles['label_tamanho_contagem'].setText("Calculando...")
+        self.view.controles['lbl_descricao'].setText("Iniciando...")
 
-    def atualizar_barra(self, valor, total):
-        if total <= 0:
-            return
-        porcentagem = (valor / total) * 100
+        # 4. Bloqueia os controles e inicia a Thread
+        self.alterar_estado_controles(False)
+        self.worker.start()
+
+    def ao_atualizar_progresso(self, porcentagem, bytes_copiados):
         pbar = self.view.controles['progress_bar']
-        pbar.setFormat(f"{porcentagem:.3f}%")
-        pbar.setValue(int(porcentagem))
 
-    def exibir_mensagem(self, tipo, titulo, mensagem):
-        # Substitui os messageboxes do Tkinter pelos nativos do PyQt6
-        if tipo == "warning":
-            QMessageBox.warning(self.view, titulo, mensagem)
-        elif tipo == "critical":
-            QMessageBox.critical(self.view, titulo, mensagem)
+        # Se bytes copiados for 0 ou se estiver no início, zera visualmente a barra e o texto
+        if bytes_copiados <= 0 or self.worker.tamanho_total <= 0:
+            pbar.setValue(0)
+            pbar.setFormat("0.000%")
+            self.view.controles['label_copiado_contagem'].setText("0.00 B")
+            return
+
+        # Calcula a porcentagem precisa em float para exibir no texto da barra
+        porcentagem_float = (bytes_copiados / self.worker.tamanho_total) * 100
+
+        # Atualiza o formato do texto (3 casas decimais) e o valor inteiro da barra
+        pbar.setFormat(f"{porcentagem_float:.3f}%")
+        pbar.setValue(porcentagem)
+
+        # Atualiza o contador de tamanho
+        self.view.controles['label_copiado_contagem'].setText(
+            WorkerCopia.formatar_tamanho(bytes_copiados)
+        )
+
+    def exibir_alerta(self, titulo, mensagem):
+        QMessageBox.warning(self.view, titulo, mensagem)
+
+    def acionar_botao_pausa(self):
+        if hasattr(self, "worker") and self.worker.isRunning():
+            self.worker.pausar_copia()
+
+    def ao_pausar_copia(self):
+        # 1. Abre a caixa de diálogo bloqueante na interface gráfica
+        QMessageBox.information(
+            self.view,
+            "Pausado",
+            "A cópia foi pausada. Clique em OK para continuar.",
+        )
+
+        # 2. Quando o usuário clica em OK, desfaz a pausa no Worker para retomar o fluxo
+        if hasattr(self, "worker") and self.worker:
+            self.worker.alternar_pausa(False)
+
+    def ao_concluir_copia(self, teve_erro, foi_cancelado):
+        # 1. Habilita os controles da interface novamente
+        self.alterar_estado_controles(True)
+
+        # 2. Atualiza a mensagem final
+        if foi_cancelado:
+            self.view.controles['lbl_descricao'].setText('Cópia cancelada pelo usuário!')
         else:
-            QMessageBox.information(self.view, titulo, mensagem)
+            self.view.controles['lbl_descricao'].setText('Cópia concluída!')
+
+        # 3. Exibe alerta de erro se houver
+        if teve_erro:
+            QMessageBox.warning(
+                self.view,
+                'Aviso',
+                'Erros encontrados. Consulte o log em Arquivos -> Abrir log.',
+            )
+
+        # 4. Processa as ações pós-cópia (Lendo o estado ATUAL dos checkboxes)
+        if not foi_cancelado:
+            # A) Se a opção "Desligar" estiver marcada no término
+            if self.view.controles['chk_desligar'].isChecked():
+                WorkerCopia.desligar_computador()
+                self.view.close()
+                return
+
+            # B) Se apenas "Encerrar" estiver marcado no término
+            if self.view.controles['chk_encerrar'].isChecked():
+                self.view.close()
+
+    def alterar_estado_controles(self, estado):
+        self.view.controles['entrada_origem'].setEnabled(estado)
+        self.view.controles['entrada_destino'].setEnabled(estado)
+        self.view.controles['btn_origem'].setEnabled(estado)
+        self.view.controles['btn_destino'].setEnabled(estado)
+        self.view.controles['btn_exec'].setEnabled(estado)
+        self.view.controles['btn_cancel'].setEnabled(not estado)
+        self.view.controles['btn_pause'].setEnabled(not estado)
+        self.view.controles['chk_nome_origem'].setEnabled(estado)
+
+    def zerar_barra_progresso(self):
+        pbar = self.view.controles['progress_bar']
+        pbar.setValue(0)
+        pbar.setFormat("0.000%")
+        self.view.controles['label_copiado_contagem'].setText("0.00 B")

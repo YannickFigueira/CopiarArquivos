@@ -30,17 +30,6 @@ total_arquivos = 0
 tamanho_total = 0
 soma = 0
 
-
-def ao_fechar_janela():
-    global cancelar
-    # 1. Ativa a flag de cancelamento para interromper workers
-    cancelar = True
-
-    # 3. Se houver uma referência global do executor, cancela as tarefas futuras
-    global executor
-    if 'executor' in globals() and executor is not None:
-        executor.shutdown(wait=False, cancel_futures=True)
-
 def atualiza_tempo(inicio, label):
     """Thread que atualiza o label de tempo decorrido em paralelo."""
     while not parar_tempo.is_set():

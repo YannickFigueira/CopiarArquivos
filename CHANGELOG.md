@@ -110,3 +110,10 @@
 - Corrigido barra de progresso que passou a terminar antes da cópia
 - Corrigido tempo de cópia de arquivos
 - Corrigido pausar, cancelar e fechar o programa, erros apresentados ao corrigir o desempenho da cópia dos arquivos
+
+## [5.0.0] - 2026-09-07
+### Changes
+- Atualizado visual da janela com pyqt6, novo disign, novo menu
+
+### Fixes
+- Corrigido todos os comandos parados pela mudança de visual anterior
