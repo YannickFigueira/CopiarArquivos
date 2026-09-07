@@ -1,25 +1,107 @@
-# Programa Cópia de Arquivos
+# 📂 Cópia de Arquivos (PyQt6)
 
-Aplicativo para cópia de arquivos, mais agilizado na inicialização da cópia
+Aplicativo desktop moderno e otimizado para cópia de arquivos e diretórios em alta velocidade, projetado para iniciar a cópia **imediatamente** sem travamentos de interface, oferecendo suporte nativo a multithreading e tolerância a falhas em discos danificados.
 
-## 📦 Estrutura do Projeto
+---
 
-- `copiararquivos.py` → arquivo principal (ponto de entrada)
-- `metodos.py` → módulo auxiliar para execução do programa
+## 📸 Demonstração
 
-## 🚀 Instalação
+![Interface do Programa](docs/screenshots/app.png)
+*> Interface principal utilizando o menu hambúrguer para acesso rápido aos logs e configurações.*
 
-### Via pacote `.deb`
-- bash
-- sudo dpkg -i copiararquivos.deb
-- sudo apt-get install -f # corrige dependências se necessário
+---
 
-### Via `Pyinstaller`
-- bash
-- pyinstaller copiararquivos.spec
+## ✨ Principais Recursos
 
-### Via `.exe`
-- portátil
+- ⚡ **Cópia Imediata:** O processo de cópia começa no segundo zero, enquanto a varredura do tamanho total roda em segundo plano.
+- 🍔 **Interface Moderna (PyQt6):** Layout responsivo com **Menu Hambúrguer** expansível/retrátil.
+- 🎨 **Suporte a Temas:** Alternância de temas e barras de título personalizadas.
+- 🧵 **Multithreading Seguro:** A interface não trava durante grandes transferências ou falhas de leitura.
+- 📋 **Gerenciador de Logs Integrado:** Visualização, limpeza e registro em tempo real de erros e status.
+- ⚙️ **Autodesligamento/Encerramento:** Opção para desligar ou encerrar o sistema após a conclusão.
 
-📧 Contato
-Autor: Yannick de Oliveira Figueira Email: chronostimeinchain@gmail.com
+---
+
+## 📁 Estrutura do Projeto
+
+- `main.py` → Ponto de entrada da aplicação.
+- `copiar_arquivos.py` → Motor assíncrono (Worker) para gerenciar a cópia, threads e logs.
+- `janela_copiar_arquivos.py` → Interface gráfica principal construída em **PyQt6**.
+- `janela_logs.py` → Subjanela para visualização e gerenciamento dos registros de log.
+- `barra_titulo.py` e `barra_titulo_subjanela.py` → Controle customizado de barras de título e navegação.
+- `estilo.py` e `tema.py` → Estilização CSS/QSS e temas visual da aplicação.
+- `funcoes.py` → Funções utilitárias e métodos auxiliares.
+- `arquivo_log.py` → Módulo para criação, escrita e limpeza de logs.
+- `verificarversao.py` → Verificação de versão e atualizações.
+- `CHANGELOG.md` → Histórico de alterações e melhorias da aplicação.
+- `main.spec` → Script de configuração para geração de executável via PyInstaller.
+
+---
+
+## 🚀 Como Executar ou Compilar
+
+### 1. Executando via Código Fonte (Python)
+Certifique-se de ter o **Python 3.10+** e as dependências instaladas:
+
+```bash
+pip install PyQt6
+python main.py
+
+```
+
+---
+
+### 2. Gerando o Executável (`PyInstaller`)
+
+Para compilar o projeto em um executável único (Windows/Linux):
+
+```bash
+pyinstaller main.spec
+
+```
+
+O executável compilado estará disponível no diretório `dist/`.
+
+---
+
+### 3. Instalação no Linux (`.deb`)
+
+Se você gerou o pacote `.deb` para distribuição:
+
+```bash
+sudo dpkg -i copiararquivos.deb
+sudo apt-get install -f  # Corrige dependências, se necessário
+
+```
+
+---
+
+## 📧 Contato
+
+* **Autor:** Yannick de Oliveira Figueira
+* **E-mail:** [chronostimeinchain@gmail.com](mailto:chronostimeinchain@gmail.com)
+
+```
+
+---
+
+## 🖼️ Como adicionar a imagem da tela do programa no Markdown
+
+Para que a imagem apareça corretamente no seu repositório (GitHub, GitLab, etc.), siga estes passos:
+
+1. **Crie uma pasta no seu projeto:**
+   Crie uma estrutura de pastas como `docs/screenshots/` dentro do diretório do seu código.
+
+2. **Salve a foto/print:**
+   Tire uma captura de tela da sua aplicação em execução e salve-a como `app.png` dentro da pasta `docs/screenshots/`.
+
+3. **Referencie no Markdown:**
+   No arquivo `README.md`, adicione o seguinte trecho onde deseja que a imagem apareça:
+
+   ```markdown
+   ![Interface do Programa](docs/screenshots/app.png)
+
+```
+
+* O texto dentro dos colchetes `[...]` é o texto alternativo (*alt text*).
+* O caminho dentro dos parênteses `(...)` é o caminho relativo onde a imagem está salva dentro da pasta do projeto.
