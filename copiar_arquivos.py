@@ -5,348 +5,314 @@ import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from tkinter import messagebox
 
-from arquivo_log import registrar_log, gerar_arquivo_log, limpar_logs
+from PyQt6.QtCore import QThread, pyqtSignal
 
-# Aumenta o buffer interno do Windows no shutil para 16MB (o padrão é 64KB)
-# Isso reduz as chamadas de sistema e evita que o cache esvazie, mitigando as pausas.
+from arquivo_log import gerar_arquivo_log, limpar_logs, registrar_log
+
+# Aumenta o buffer interno do Windows no shutil para 16MB
 shutil._WINDOWS_INTERNAL_BUFFER_SIZE = 16 * 1024 * 1024
 
-# Detecta sistema operacional
-system = platform.system()  # Retorna 'Linux', 'Windows', 'Darwin' (Mac)
-
-# Evento para parar a thread do tempo
-parar_tempo = threading.Event()
-pausar_tempo = threading.Event()
-
-# Variável
-tarefas_executando = []
-cancelar = False
-pausar = False
-liberar_total = False
-erro_encontrado = False
-total_arquivos = 0
-tamanho_total = 0
-soma = 0
-
-def atualiza_tempo(inicio, label):
-    """Thread que atualiza o label de tempo decorrido em paralelo."""
-    while not parar_tempo.is_set():
-        # Se estiver pausado, espera até ser liberado
-        while pausar_tempo.is_set() and not parar_tempo.is_set():
-            time.sleep(0.1)
-
-        decorrido = time.time() - inicio
-        horas, resto = divmod(decorrido, 3600)  # divide em horas
-        minutos, segundos = divmod(resto, 60)  # divide o restante em minutos e segundos
-
-        # agenda a atualização do label na thread principal do Tkinter
-        #def _set_label():
-        label.setText(f"{int(horas):02}:{int(minutos):02}:{segundos:04.1f}")
-
-        #label.after(0, _set_label)
-        # frequência de atualização (ajuste conforme desejar)
-        time.sleep(0.2)
-
-def pausar_copia():
-    # 1. Sinaliza o início da pausa (congela as threads da cópia e o cronômetro)
-    pausar_tempo.set()
-
-    # 2. Exibe o alerta na interface gráfica de forma síncrona.
-    # O programa fica parado AQUI até o usuário clicar no botão OK
-    messagebox.showinfo("Pausado", "A cópia foi pausada. Clique em OK para continuar.")
-
-    # 3. Quando o usuário clica em OK, desfaz a sinalização para retomar o fluxo
-    pausar_tempo.clear()
-
-def cancelar_copia2():
-    global cancelar
-    resposta = messagebox.askyesno("Cancelar", "Quer realmente cancelar?")
-    if resposta:
-        cancelar = True
-
-def cancelar_copia(view):
-    global cancelar
-
-    resposta = messagebox.askyesno("Cancelar", "Quer realmente cancelar?")
-    if resposta:
-        cancelar = True
-
-        # Se estiver pausado, libera as threads para que leiam 'cancelar = True' e terminem
-        pausar_tempo.clear()
-
-        # Atualiza a interface gráfica imediatamente na Thread Principal
-        view.controles['lbl_descricao'].setText("Cópia cancelada pelo usuário!")
-
-        # Reseta a barra de progresso
-        if hasattr(view.controles['progress_bar'], 'set'):
-            view.controles['progress_bar'].set(0)
-        elif hasattr(view.controles['progress_bar'], 'delete'):
-            view.controles['progress_bar'].delete("all")
-
-### Atualiza a barra de progresso ###
-def atualizar_barra(view, valor, total):
-    if total <= 0:
-        return
-    porcentagem = (valor / total) * 100
-    pbar = view.controles['progress_bar']
-    pbar.setFormat(f"{porcentagem:.3f}%")
-    pbar.setValue(int(porcentagem))
+SYSTEM_OS = platform.system().lower()
 
 
-def alterar_estado_controles(view, estado):
-    view.controles['entrada_origem'].setEnabled(estado)
-    view.controles['entrada_destino'].setEnabled(estado)
-    view.controles['btn_origem'].setEnabled(estado)
-    view.controles['btn_destino'].setEnabled(estado)
-    view.controles['btn_exec'].setEnabled(estado)
-    view.controles['chk_nome_origem'].setEnabled(estado)
+class WorkerCopia(QThread):
+    # --- SINAIS PARA A INTERFACE GRÁFICA ---
+    sinal_progresso = pyqtSignal(int, float)  # (porcentagem_int, bytes_copiados)
+    sinal_status = pyqtSignal(str)  # Descrição do arquivo atual / avisos
+    sinal_tempo = pyqtSignal(str)  # Cronômetro "HH:MM:SS"
+    sinal_tamanho_calculado = pyqtSignal(str)  # Tamanho total atualizado
+    sinal_alerta = pyqtSignal(str, str)  # (Título, Mensagem) para dialogs
+    sinal_concluido = pyqtSignal(bool, bool)  # (teve_erro, foi_cancelado)
+    sinal_pausado = pyqtSignal()  # Dispara a caixa de diálogo de pausa
 
-# --- Inicio do procedimento
-def iniciar_calculo_tamanho(view, pastas_origem, liberar):
-    t = threading.Thread(
-        target=tamanho_pasta,
-        args=(view, pastas_origem, liberar),
-        daemon=True
-    )
-    t.start()
+    def __init__(
+        self,
+        pastas_origem,
+        pastas_destino,
+        incluir_pasta_origem=True,
+        desligar=False,
+        encerrar=False,
+    ):
+        super().__init__()
+        self.pastas_origem = pastas_origem
+        self.pastas_destino = pastas_destino
+        self.incluir_pasta_origem = incluir_pasta_origem
+        self.desligar = desligar
+        self.encerrar = encerrar
 
-def tamanho_pasta(view, pastas_origem, liberar):
-    global total_arquivos, liberar_total, tamanho_total
-    view.controles['label_tamanho_contagem'].settext("Atualizando...")
-    tamanho_total = 0
-    total_arquivos = 0
+        # Estado de Controle
+        self.cancelar_solicitado = False
+        self.pausado = False
+        self.erro_encontrado = False
 
-    for pasta in pastas_origem:
-        ver_pasta = Path(pasta)
+        # Totalizadores compartilhados com Locks
+        self.tamanho_total = 0
+        self.total_arquivos = 0
+        self.bytes_copiados = 0
+        self.lock = threading.Lock()
 
-        # Iteramos pelos arquivos para contar e somar o tamanho simultaneamente
-        for item in ver_pasta.rglob("*"):
-            if item.is_file():
-                total_arquivos += 1
-                tamanho_total += item.stat(follow_symlinks=False).st_size
+        # Flags de sincronização de threads internas
+        self.evento_parar_tempo = threading.Event()
+        self.caminho_log = ""
 
-    view.controles['label_tamanho_contagem'].configure(text=formatar_tamanho(tamanho_total))
+    def run(self):
+        """A cópia se inicia IMEDIATAMENTE. O cálculo roda em background."""
+        self.caminho_log = gerar_arquivo_log()
+        registrar_log(self.caminho_log, "[INFO] Iniciando processo de cópia.")
+        limpar_logs()
 
-    match liberar:
-        case "execucao":
-            liberar_total = True
-        case _:
-            return
+        inicio_tempo = time.time()
 
-def formatar_tamanho(tamanho):
-    # Converte o valor para float com segurança
-    try:
-        tamanho = float(tamanho)
-    except (ValueError, TypeError):
-        return "0.00 B"
+        # 1. DISPARA A THREAD DE CRONÔMETRO (Paralela)
+        self.evento_parar_tempo.clear()
+        thread_cronometro = threading.Thread(
+            target=self._thread_atualizar_tempo,
+            args=(inicio_tempo,),
+            daemon=True,
+        )
+        thread_cronometro.start()
 
-    for unidade in ['B', 'KB', 'MB', 'GB', 'TB']:
-        if tamanho < 1024.0:
-            return f"{tamanho:.2f} {unidade}"
-        tamanho /= 1024.0
-    return f"{tamanho:.2f} PB"
+        # 2. DISPARA A THREAD DE CÁLCULO DE TAMANHO (Paralela e Dinâmica)
+        # Não bloqueia a cópia! Os arquivos começam a ser copiados no segundo 0.
+        thread_calculo = threading.Thread(
+            target=self._thread_calcular_tamanho_dinamico, daemon=True
+        )
+        thread_calculo.start()
 
-# --- Desliga o equipamento
-def desligar_computador():
-    # Detecta o sistema operacional atual
-    sistema = platform.system().lower()
-    if "windows" in sistema:
-        # /s = desligar, /t 0 = tempo de espera (0 segundos)
-        subprocess.run("shutdown /s /t 0")
-    elif "linux" in sistema:
-        # h = halt/desligar, now = imediatamente
-        # Nota: no Linux, pode ser necessário privilégios de root (sudo) dependendo da distro
-        subprocess.run("shutdown -h now")
-    else:
-        print("Sistema operacional não suportado para esta ação.")
+        # 3. PROCESSO DE CÓPIA IMEDIATO
+        try:
+            with ThreadPoolExecutor(max_workers=2) as executor:
+                for origem, destino_base in zip(
+                    self.pastas_origem, self.pastas_destino
+                ):
+                    if self.cancelar_solicitado:
+                        break
 
-# --- Execução da cópia dos arquivos ---
-def iniciar_copiar_arquivos(view, pastas_origem, pastas_destino):
-    global soma
-    soma = 0
-    alterar_estado_controles(view, False)
-    iniciar_calculo_tamanho(view, pastas_origem, "execucao")
-    iniciar_copia(pastas_origem, pastas_destino, view)
+                    if origem.endswith(":"):
+                        origem += "\\"
+                    if destino_base.endswith(":"):
+                        destino_base += "\\"
 
-def iniciar_copia(pastas_origem, pastas_destino, view):
-    t = threading.Thread(
-        target=copiando_pastas,
-        args=(pastas_origem, pastas_destino, view),
-        daemon=True
-    )
-    t.start()
+                    caminho_origem = Path(origem)
+                    base_destino = Path(destino_base)
 
-def copiando_pastas(pastas_origem, pastas_destino, view):
-    global erro_encontrado, cancelar, tamanho_total
-    erro_encontrado = False
-    cancelar = False
-    tamanho_total = 0
-    caminho_log = gerar_arquivo_log()
-    registrar_log(caminho_log, "[INFO] Iniciando processo de cópia.")
-    limpar_logs()
-    view.controles['lbl_descricao'].setText("")  # apaga tudo
+                    pasta_destino_final = (
+                        base_destino / caminho_origem.name
+                        if self.incluir_pasta_origem
+                        else base_destino
+                    )
 
-    parar_tempo.clear()
-    inicio = time.time()  # marca o início da execução
-    # inicia a thread do tempo (daemon para não travar saída)
-    thread_tempo = threading.Thread(target=atualiza_tempo, args=(inicio, view.controles['label_tempo_decorrido']),
-                                    daemon=True)
-    thread_tempo.start()
+                    self.processar_pasta(
+                        caminho_origem, pasta_destino_final, executor
+                    )
+        finally:
+            # Encerra o cronômetro
+            self.evento_parar_tempo.set()
+            thread_cronometro.join(timeout=1.0)
 
-    try:
-        # zip alinha origem/destino; enumerate fornece o índice 'i'
-        for i, (origem, destino_base) in enumerate(zip(pastas_origem, pastas_destino)):
-            # Garante que "c:" vire "c:\" antes de virar Path
-            if origem.endswith(":"):
-                origem += "\\"
+        # Finalização
+        registrar_log(
+            self.caminho_log, "[INFO] Processo finalizado.\n" + ("_" * 40)
+        )
+        self.sinal_concluido.emit(
+            self.erro_encontrado, self.cancelar_solicitado
+        )
 
-            # Garante que "c:" vire "c:\" antes de virar Path
-            if destino_base.endswith(":"):
-                destino_base += "\\"
+    def _thread_calcular_tamanho_dinamico(self):
+        """Varre os arquivos em segundo plano SEM travar a cópia.
 
-            caminho_origem = Path(origem)
-            base_destino = Path(destino_base)
-            # / une caminhos automaticamente independente do S.O.
-            if view.controles['chk_nome_origem'].isChecked():
-                pasta_destino_final = base_destino / caminho_origem.name
-            else:
-                pasta_destino_final = base_destino
-            print(f"Pasta destino final: {pasta_destino_final}")
+        Garante tolerância a falhas em discos danificados.
+        """
+        for pasta in self.pastas_origem:
+            if self.cancelar_solicitado:
+                return
 
-            copiando_arquivos(caminho_origem, pasta_destino_final, view, caminho_log)
-    finally:
-        # sinaliza para parar a thread de tempo e aguarda encerrar
-        parar_tempo.set()
-        # small join com timeout para evitar travar se a GUI encerrar
-        thread_tempo.join(timeout=1.0)
+            ver_pasta = Path(pasta)
+            if not ver_pasta.exists():
+                continue
 
-    # Atualiza a interface ao finalizar todas as cópias
-    if not cancelar:
-        view.controles['lbl_descricao'].setText("Concluído cópia!")
-    else:
-        view.controles['lbl_descricao'].setText("Execução cancelada!")
+            try:
+                for item in ver_pasta.rglob("*"):
+                    if self.cancelar_solicitado:
+                        return
+                    try:
+                        # is_file() sem argumentos; o controle de symlink é feito no stat()
+                        if item.is_file():
+                            tamanho = item.stat(follow_symlinks=False).st_size
+                            with self.lock:
+                                self.total_arquivos += 1
+                                self.tamanho_total += tamanho
 
-    alterar_estado_controles(view, True)
-    view.controles['btn_cancel'].setEnabled(False)
-    view.controles['btn_pause'].setEnabled(False)
+                            # Envia o progresso do cálculo para a UI em tempo real
+                            self.sinal_tamanho_calculado.emit(
+                                self.formatar_tamanho(self.tamanho_total)
+                            )
+                    except (PermissionError, FileNotFoundError, OSError):
+                        continue
+            except (PermissionError, FileNotFoundError, OSError) as e:
+                registrar_log(
+                    self.caminho_log,
+                    f"[AVISO] Erro lendo diretório {pasta}: {e}",
+                )
+                continue
 
-    if erro_encontrado:
-        messagebox.showwarning("Erro", "Foi encontrado erros durante a cópia, vá em Arquivos -> Abrir log, para verificar")
+    def _thread_atualizar_tempo(self, inicio):
+        """Thread paralela para atualizar o tempo decorrido."""
+        while not self.evento_parar_tempo.is_set():
+            while self.pausado and not self.evento_parar_tempo.is_set():
+                time.sleep(0.1)
 
-    if view.controles['chk_desligar'].isChecked():
-        desligar_computador()
-        view.controles['janela_principal'].destroy()
+            decorrido = time.time() - inicio
+            horas, resto = divmod(decorrido, 3600)
+            minutos, segundos = divmod(resto, 60)
+            self.sinal_tempo.emit(
+                f"{int(horas):02}:{int(minutos):02}:{segundos:04.1f}"
+            )
+            time.sleep(0.2)
 
-    if view.controles['chk_encerrar'].isChecked():
-        view.controles['janela_principal'].destroy()
+    def processar_pasta(self, origem, destino, executor):
+        registrar_log(self.caminho_log, f"[INFO] Copiando pasta {origem}")
 
-    registrar_log(caminho_log, "[INFO] Processo finalizado.\n" + ("_" * 40))
-
-# Lock para evitar Race Condition em variáveis compartilhadas
-lock_soma = threading.Lock()
-
-def copiando_arquivos(origem, destino, view, caminho_log):
-    global tamanho_total, soma, erro_encontrado, executor
-
-    lbl_copiado_tamanho = view.controles['label_copiado_contagem']
-    registrar_log(caminho_log, f"[INFO] Copiando pasta {origem}")
-    # Crie o pool DE FORA de todos os loops de arquivos/pastas
-    with ThreadPoolExecutor(max_workers=2) as executor:
         for raiz, dirs, files in origem.walk(origem, on_error=lambda a: None):
+            if self.cancelar_solicitado:
+                break
+
             pasta_final = destino / raiz.relative_to(origem)
             try:
                 if raiz.is_dir():
                     pasta_final.mkdir(parents=True, exist_ok=True)
 
                 for f in files:
+                    if self.cancelar_solicitado:
+                        break
+
+                    # Pausa
+                    while self.pausado and not self.cancelar_solicitado:
+                        time.sleep(0.2)
+
                     origem_arquivo = raiz / f
-                    try:
-                        disco = ""
-                        if system == 'Windows':
-                            separar = view.controles['entrada_destino'].get().split("/")
-                            disco = separar[0]
-                        elif system == 'Linux':
-                            disco = view.controles['entrada_destino'].get()
-                        destino_arquivo = pasta_final / f
+                    destino_arquivo = pasta_final / f
 
-                        uso = shutil.disk_usage(Path(disco))
-                        if origem_arquivo.stat().st_size > uso.free:
-                            pausar_tempo.set()
-                            messagebox.showwarning("Sem espaço em disco",
-                                                   f"Espaço necessário {formatar_tamanho(origem_arquivo.stat().st_size - uso.free)}")
-                            pausar_tempo.clear()
+                    # Checagem de espaço em disco
+                    if not self.verificar_espaco_disponivel(
+                        origem_arquivo, destino_arquivo
+                    ):
+                        continue
 
-
-
-                        executor.submit(copiar, origem_arquivo, destino_arquivo, caminho_log, view, view.controles['janela_principal'])
-                    except Exception as e:
-                        erro_encontrado = True
-                        registrar_log(caminho_log, f"[ERRO] Lendo arquivo -> {e} -> Origem {origem_arquivo}")
+                    executor.submit(
+                        self.copiar_arquivo_task,
+                        origem_arquivo,
+                        destino_arquivo,
+                    )
 
             except Exception as e:
-                erro_encontrado = True
-                registrar_log(caminho_log, f"[ERRO] Criando pasta -> {e}")
+                self.erro_encontrado = True
+                registrar_log(self.caminho_log, f"[ERRO] Criando pasta -> {e}")
 
-    atualizar_barra(view, 1, 1)
+    def copiar_arquivo_task(self, origem_arquivo, destino_arquivo):
+        if self.cancelar_solicitado:
+            return
 
-def copiar(origem_arquivo, destino_arquivo, caminho_log, view, janela):
-    global erro_encontrado, soma, cancelar
+        # Evita tentar copiar soquetes ou atalhos de sistema (como os do .cache/ibus)
+        try:
+            if origem_arquivo.is_symlink() or origem_arquivo.is_socket() or origem_arquivo.is_fifo():
+                return
+        except OSError:
+            return  # Se não conseguir checar o tipo do arquivo, ignora com segurança
 
-    # --- VERIFICAÇÃO DE CANCELAMENTO ---
-    # Se o usuário clicou em "Cancelar" enquanto estava pausado:
-    if cancelar:
-        return
-    # -----------------------------------
+        while self.pausado and not self.cancelar_solicitado:
+            time.sleep(0.2)
 
-    # --- BLOQUEIO DAS THREADS ENQUANTO ESTIVER PAUSADO ---
-    # Se o botão de pausa for clicado (pausar_tempo.set()), todas as threads
-    # que tentarem copiar novos arquivos ficam travadas aqui até o OK ser clicado.
-    while pausar_tempo.is_set():
-        time.sleep(0.1)
-    # -----------------------------------------------------
+        try:
+            if "windows" in SYSTEM_OS:
+                str_origem = f"\\\\?\\{origem_arquivo.resolve()}"
+                str_destino = f"\\\\?\\{destino_arquivo.resolve()}"
+            else:
+                str_origem = str(origem_arquivo)
+                str_destino = str(destino_arquivo)
 
-    try:
-        # --- ADICIONE ESTAS LINHAS PARA TRATAR O ERRO 206 ---
-        if system == 'Windows':
-            # Resolve o caminho absoluto e aplica o prefixo UNICODE para caminhos longos
-            str_origem = f"\\\\?\\{origem_arquivo.resolve()}"
-            str_destino = f"\\\\?\\{destino_arquivo.resolve()}"
-        else:
-            str_origem = origem_arquivo
-            str_destino = destino_arquivo
-        # ----------------------------------------------------
+            path_destino = Path(str_destino)
+            path_origem = Path(str_origem)
 
-        # Atualize as verificações e o shutil.copy2 usando as strings formatadas
-        path_destino = Path(str_destino)
-        path_origem = Path(str_origem)
+            tamanho_arq = origem_arquivo.stat(follow_symlinks=False).st_size
 
-        # follow_symlinks=False evita tentar resolver atalhos/symlinks quebrados
-        tamanho_arq = origem_arquivo.stat(follow_symlinks=False).st_size
+            # Notifica arquivo sendo copiado
+            texto_status = (
+                f"{self.formatar_tamanho(tamanho_arq)} -> {origem_arquivo.name}"
+            )
+            self.sinal_status.emit(texto_status)
 
-        # Atualizações do Tkinter enviadas de forma assíncrona (thread-safe)
-        texto_status = f"{formatar_tamanho(tamanho_arq)} -> {origem_arquivo}"
-        view.controles['janela_principal'].after(0, lambda t=texto_status: (
-            view.controles['lbl_descricao'].setText(t)
-        ))
+            # Efetua a cópia se não existir ou se for mais recente
+            if not path_destino.is_file() or (
+                path_origem.stat().st_mtime > path_destino.stat().st_mtime
+            ):
+                shutil.copy2(str_origem, str_destino, follow_symlinks=False)
 
-        if not path_destino.is_file() or (path_origem.stat().st_mtime > path_destino.stat().st_mtime):
-            # shutil.copy2 aceita as strings com o prefixo \\?\
-            shutil.copy2(str_origem, str_destino, follow_symlinks=False)
+            # Atualização do progresso com proteção de Threads
+            with self.lock:
+                self.bytes_copiados += tamanho_arq
+                copiados = self.bytes_copiados
+                total = self.tamanho_total
 
-        # 2. SÓ AGORA atualiza o progresso real!
-        with lock_soma:
-            soma += tamanho_arq
-            soma_atual = soma
+            porcentagem = int((copiados / total) * 100) if total > 0 else 0
+            self.sinal_progresso.emit(porcentagem, copiados)
 
-        # Atualiza a interface gráfica com o progresso REAL concluído
-        janela.after(0, lambda s=soma_atual: (
-            view.controles['label_copiado_contagem'].setText(formatar_tamanho(s)),
-            atualizar_barra(view, s, tamanho_total) if tamanho_total > 0 else None
-        ))
-    except shutil.SameFileError:
-        pass
-    except Exception as e:
-        erro_encontrado = True
-        registrar_log(caminho_log, f"[ERRO] Copiando -> {e} -> Origem {origem_arquivo} -> Destino {destino_arquivo}")
+        except shutil.SameFileError:
+            pass
+        except Exception as e:
+            self.erro_encontrado = True
+            registrar_log(
+                self.caminho_log,
+                f"[ERRO] Copiando -> {e} -> Origem {origem_arquivo}",
+            )
+
+    def verificar_espaco_disponivel(self, origem_arquivo, destino_arquivo):
+        try:
+            disco = (
+                destino_arquivo.drive
+                if "windows" in SYSTEM_OS
+                else str(destino_arquivo)
+            )
+            uso = shutil.disk_usage(Path(disco if disco else "/"))
+            tamanho_arq = origem_arquivo.stat().st_size
+
+            if tamanho_arq > uso.free:
+                self.pausado = True
+                msg = f"Espaço necessário: {self.formatar_tamanho(tamanho_arq - uso.free)}"
+                self.sinal_alerta.emit("Sem espaço em disco", msg)
+                return False
+            return True
+        except Exception:
+            return True
+
+    def pausar_copia(self):
+        self.pausado = True
+        self.sinal_pausado.emit()
+
+    def alternar_pausa(self, pausar: bool):
+        self.pausado = pausar
+
+    def cancelar_copia(self):
+        self.cancelar_solicitado = True
+        self.pausado = False
+
+    @staticmethod
+    def formatar_tamanho(tamanho):
+        try:
+            tamanho = float(tamanho)
+        except (ValueError, TypeError):
+            return "0.00 B"
+
+        for unidade in ["B", "KB", "MB", "GB", "TB"]:
+            if tamanho < 1024.0:
+                return f"{tamanho:.2f} {unidade}"
+            tamanho /= 1024.0
+        return f"{tamanho:.2f} PB"
+
+    @staticmethod
+    def desligar_computador():
+        if "windows" in SYSTEM_OS:
+            subprocess.run("shutdown /s /t 0")
+        elif "linux" in SYSTEM_OS:
+            subprocess.run("shutdown -h now")

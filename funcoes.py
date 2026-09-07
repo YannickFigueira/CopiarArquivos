@@ -1,13 +1,11 @@
 import platform
-from pathlib import Path
-from tkinter import messagebox
 
 from PyQt6.QtCore import QUrl
 from PyQt6.QtGui import QDesktopServices
 from PyQt6.QtWidgets import QFileDialog, QMessageBox
 
-import verificarversao, estilo, copiar_arquivos
-from copiar import WorkerCopia
+import verificarversao, estilo
+from copiar_arquivos import WorkerCopia
 from janela_logs import JanelaLogs
 from arquivo_log import ler_pasta_log, abrir_logs
 
