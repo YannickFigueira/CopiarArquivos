@@ -112,8 +112,16 @@
 - Corrigido pausar, cancelar e fechar o programa, erros apresentados ao corrigir o desempenho da cópia dos arquivos
 
 ## [5.0.0] - 2026-09-07
-### Changes
-- Atualizado visual da janela com pyqt6, novo disign, novo menu
 
-### Fixes
-- Corrigido todos os comandos parados pela mudança de visual anterior
+### Adicionado
+- Nova interface gráfica moderna desenvolvida em **PyQt6**.
+- Menu Hambúrguer retrátil/expansível para navegação entre telas.
+- Cálculo de tamanho dinâmico em segundo plano via `QThread`.
+
+### Alterado
+- Refatoração completa do motor de cópia assíncrono para prevenir congelamentos da UI em discos com setores defeituosos.
+- Formatação da barra de progresso com precisão de 3 casas decimais (`0.000%`).
+
+### Corrigido
+- Correção na sincronização de sinais do worker para pausa, cancelamento e encerramento.
+- Ajuste na compatibilidade de caminhos longos no Windows (`\\?\`).
