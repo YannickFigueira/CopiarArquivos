@@ -7,6 +7,7 @@ Aplicativo desktop moderno e otimizado para cópia de arquivos e diretórios em 
 ## 📸 Demonstração
 
 ![Interface do Programa](docs/screenshots/app.png)
+
 *> Interface principal utilizando o menu hambúrguer para acesso rápido aos logs e configurações.*
 
 ---
